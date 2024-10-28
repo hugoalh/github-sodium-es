@@ -4,29 +4,12 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "00:00"
+      interval: "daily"
       timezone: "Etc/UTC"
     labels:
       - "Platform/GitHubActions"
       - "Status/Pending 🔵"
       - "Type/Dependency 📦"
-    open-pull-requests-limit: 256
+    open-pull-requests-limit: 100
     pull-request-branch-name:
       separator: "/"
-  - package-ecosystem: "npm"
-    directory: "/npm"
-    schedule:
-      interval: "weekly"
-      day: "sunday"
-      time: "00:00"
-      timezone: "Etc/UTC"
-    labels:
-      - "Platform/NodeJS"
-      - "Status/Pending 🔵"
-      - "Type/Dependency 📦"
-    open-pull-requests-limit: 256
-    pull-request-branch-name:
-      separator: "/"
-    versioning-strategy: "widen"

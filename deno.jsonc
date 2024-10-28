@@ -8,10 +8,9 @@
 		"singleQuote": false,
 		"useTabs": true
 	},
-	"imports": { // IMPORTANT: Remap development dependencies only!
-		"DNT": "jsr:@deno/dnt@0.41.1",
-		"STD/assert": "jsr:@std/assert@0.225.3",
-		"STD/fs": "jsr:@std/fs@0.229.1"
+	"imports": { // IMPORTANT: Only remap development dependencies!
+		"DNT": "https://raw.githubusercontent.com/hugoalh/deno-nodejs-transformer/v0.5.2/mod.ts",
+		"STD/assert": "jsr:@std/assert@^1.0.6"
 	},
 	"lint": {
 		"rules": {
@@ -36,10 +35,15 @@
 	},
 	"lock": false,
 	"tasks": {
-		// Check JSR package metadata. `deno publish` maybe have different behaviours between different versions, always check before release!
+		// Check deployment for JSR.
 		"jsr-check": "deno publish --allow-dirty --config jsr.jsonc --dry-run --no-provenance",
-		// Build NPM package.
-		"npm-build": "deno run --allow-all --deny-hrtime --no-prompt --quiet .dnt.ts"
+		// Publish package to JSR.
+		"jsr-publish": "deno publish --allow-dirty --config jsr.jsonc --no-provenance",
+		// Publish package to JSR (provenance).
+		"jsr-publish-provenance": "deno publish --allow-dirty --config jsr.jsonc",
+		// Build package for NPM.
+		"npm-build": "deno run --allow-all --no-prompt --quiet .dnt.ts"
 	},
-	"unstable": [ ]
+	"unstable": [
+	]
 }

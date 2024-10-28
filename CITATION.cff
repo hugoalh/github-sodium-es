@@ -4,8 +4,8 @@ title: "GitHub Sodium (ES)"
 message: "If you use this software, please cite it using the metadata from this file."
 type: "software"
 authors:
-  - name: "hugoalh Studio"
-repository-code: "https://github.com/hugoalh-studio/github-sodium-es"
+  - name: "hugoalh"
+repository-code: "https://github.com/hugoalh/github-sodium-es"
 keywords:
   - "es"
   - "github"

@@ -6,7 +6,7 @@
 		".": "./mod.ts"
 	},
 	"imports": {
-		"https://esm.sh/libsodium-wrappers@0.7.13": "npm:libsodium-wrappers@0.7.13"
+		"https://esm.sh/libsodium-wrappers@^0.7.15": "npm:libsodium-wrappers@^0.7.15"
 	},
 	"publish": {
 		"exclude": [
@@ -22,8 +22,8 @@
 			"**/bench.tsx",
 			"**/test.ts",
 			"**/test.tsx",
-			".dnt.ts",
-			"npm/**"
+			"npm/**",
+			".dnt.ts"
 		],
 		"include": [
 			"**/*.json",

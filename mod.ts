@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import libsodium from "https://esm.sh/libsodium-wrappers@0.7.13";
+import libsodium from "https://esm.sh/libsodium-wrappers@^0.7.15";
 await libsodium.ready;
 /**
  * GitHub sodium sealer for encrypt value to the GitHub secret value.
@@ -35,6 +35,7 @@ export class GitHubSodiumSealer {
 	 * @param {string} publicKey Public key of the GitHub organization or repository, which need for encrypt value to the GitHub secret value before create or update a GitHub secret.
 	 * @param {string} value Value that need to encrypt as GitHub secret value.
 	 * @returns {string} An encrypted GitHub secret value.
+	 * @deprecated Migrate to `new GitHubSodiumSealer(publicKey).encrypt(value)`.
 	 */
 	static seal(publicKey: string, value: string): string {
 		return new this(publicKey).encrypt(value);
