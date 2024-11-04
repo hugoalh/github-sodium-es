@@ -13,7 +13,7 @@ jobs:
       - name: "Send Discord Webhook"
         uses: "hugoalh/send-discord-webhook-ghaction@v7"
         with:
-          key: "${{secrets.DISCORD_COMMUNITY_PROJECTNEWRELEASEANNOUNCER_WEBHOOK}}"
+          key: "${{secrets.COMMUNITY_DISCORD_PROJECTNEWRELEASEANNOUNCER_WEBHOOK}}"
           embeds: |-
             - title: "GitHub Sodium (ES)"
               description: |-
