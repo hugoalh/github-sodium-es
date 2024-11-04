@@ -10,7 +10,7 @@ export class GitHubSodiumSealer {
 	}
 	#publicKey: Buffer;
 	/**
-	 * Initialize GitHub sodium sealer.
+	 * Initialize the GitHub sodium sealer.
 	 * @param {string} publicKey Public key of the GitHub organization or repository, which need for encrypt value to the GitHub secret value before create or update a GitHub secret.
 	 */
 	constructor(publicKey: string) {
