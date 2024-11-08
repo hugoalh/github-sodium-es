@@ -14,12 +14,16 @@ await invokeDenoNodeJSTransformer({
 		"https://esm.sh/libsodium-wrappers@^0.7.15": {
 			name: "libsodium-wrappers",
 			version: "^0.7.15"
+		},
+		"https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.4/mod.ts": {
+			name: "@hugoalh/is-json",
+			version: "^1.0.4"
 		}
 	},
 	metadata: {
 		name: configJSR.getName(),
 		version: configJSR.getVersion(),
-		description: "A module to provide an easier sodium for GitHub secrets.",
+		description: "A module to provide an easier and simplified method for encrypt GitHub secrets.",
 		keywords: [
 			"github",
 			"sodium"

@@ -6,9 +6,7 @@
 [![JSR: @hugoalh/github-sodium](https://img.shields.io/jsr/v/@hugoalh/github-sodium?label=@hugoalh/github-sodium&labelColor=F7DF1E&logo=jsr&logoColor=000000&style=flat "JSR: @hugoalh/github-sodium")](https://jsr.io/@hugoalh/github-sodium)
 [![NPM: @hugoalh/github-sodium](https://img.shields.io/npm/v/@hugoalh/github-sodium?label=@hugoalh/github-sodium&labelColor=CB3837&logo=npm&logoColor=ffffff&style=flat "NPM: @hugoalh/github-sodium")](https://www.npmjs.com/package/@hugoalh/github-sodium)
 
-An ES (JavaScript & TypeScript) module to provide an easier sodium for GitHub secrets.
-
-This project is based on "[libsodium.js](https://github.com/jedisct1/libsodium.js)" with simplify for GitHub secrets.
+An ES (JavaScript & TypeScript) module to provide an easier and simplified method for encrypt GitHub secrets, based on the NPM package [`libsodium.js`](https://www.npmjs.com/package/libsodium-wrappers).
 
 ## 🔰 Begin
 
@@ -54,17 +52,30 @@ This project is based on "[libsodium.js](https://github.com/jedisct1/libsodium.j
 
 *This module does not require any runtime permission.*
 
-## 🧩 APIs
+## 🧩 APIs (Excerpt)
 
 - ```ts
   class GitHubSodiumSealer {
-    constructor(publicKey: string): GitHubSodiumSealer;
+    constructor(publicKey: string, keyID?: string);
     encrypt(value: string): string;
+    encryptToRequestPayload(value: string): GitHubRESTSetPublicKeyRequestBody;
+    getKeyID(): string | undefined;
+    get keyID(): string | undefined;
+    static createFromJSON(input: JSONObject): GitHubSodiumSealer;
+    static async createFromResponse(input: Response): Promise<GitHubSodiumSealer>;
   }
   ```
 - ```ts
-  function seal(publicKey: string, value: string): string;
+  interface GitHubRESTSetPublicKeyRequestBody {
+    encrypted_value: string;
+    key_id: string;
+  }
   ```
+
+> [!NOTE]
+> - For the full or prettier documentation, can visit via:
+>   - [Deno CLI `deno doc`](https://docs.deno.com/runtime/reference/cli/documentation_generator/)
+>   - [JSR](https://jsr.io/@hugoalh/github-sodium)
 
 ## ✍️ Examples
 

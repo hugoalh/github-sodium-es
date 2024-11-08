@@ -6,7 +6,8 @@
 		".": "./mod.ts"
 	},
 	"imports": {
-		"https://esm.sh/libsodium-wrappers@^0.7.15": "npm:libsodium-wrappers@^0.7.15"
+		"https://esm.sh/libsodium-wrappers@^0.7.15": "npm:libsodium-wrappers@^0.7.15",
+		"https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.4/mod.ts": "jsr:@hugoalh/is-json@^1.0.4"
 	},
 	"publish": {
 		"exclude": [
