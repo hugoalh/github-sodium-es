@@ -9,8 +9,8 @@
 		"useTabs": true
 	},
 	"imports": { // IMPORTANT: Only remap development dependencies!
-		"DNT": "https://raw.githubusercontent.com/hugoalh/deno-nodejs-transformer/v0.5.2/mod.ts",
-		"STD/assert": "jsr:@std/assert@^1.0.6"
+		"DNT": "https://raw.githubusercontent.com/hugoalh/deno-nodejs-transformer/v0.5.3/mod.ts",
+		"STD/assert": "jsr:@std/assert@^1.0.7"
 	},
 	"lint": {
 		"rules": {
