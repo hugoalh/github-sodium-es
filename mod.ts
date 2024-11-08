@@ -52,7 +52,7 @@ export class GitHubSodiumSealer {
 	 * @param {string} value Value that need to encrypt as the GitHub secret value.
 	 * @returns {GitHubRESTSetPublicKeyRequestBody} Part of the {@linkcode Request} body for create or update GitHub secret via the GitHub REST API.
 	 */
-	encryptToRequestPayload(value: string): GitHubRESTSetPublicKeyRequestBody {
+	encryptToRequestBody(value: string): GitHubRESTSetPublicKeyRequestBody {
 		if (this.#keyID !== "string") {
 			throw new Error(`\`keyID\` was not defined at the initialize stage!`);
 		}

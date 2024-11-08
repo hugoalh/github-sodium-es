@@ -58,7 +58,7 @@ An ES (JavaScript & TypeScript) module to provide an easier and simplified metho
   class GitHubSodiumSealer {
     constructor(publicKey: string, keyID?: string);
     encrypt(value: string): string;
-    encryptToRequestPayload(value: string): GitHubRESTSetPublicKeyRequestBody;
+    encryptToRequestBody(value: string): GitHubRESTSetPublicKeyRequestBody;
     getKeyID(): string | undefined;
     get keyID(): string | undefined;
     static createFromJSON(input: JSONObject): GitHubSodiumSealer;
