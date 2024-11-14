@@ -61,8 +61,8 @@ An ES (JavaScript & TypeScript) module to provide an easier and simplified metho
     encryptToRequestBody(value: string): GitHubRESTSetPublicKeyRequestBody;
     getKeyID(): string | undefined;
     get keyID(): string | undefined;
-    static createFromJSON(input: JSONObject): GitHubSodiumSealer;
-    static async createFromResponse(input: Response): Promise<GitHubSodiumSealer>;
+    static fromJSON(input: JSONObject): GitHubSodiumSealer;
+    static async fromResponse(input: Response): Promise<GitHubSodiumSealer>;
   }
   ```
 - ```ts

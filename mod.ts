@@ -28,7 +28,7 @@ export class GitHubSodiumSealer {
 			typeof keyID === "undefined" ||
 			(typeof keyID === "string" && keyID.length > 0)
 		)) {
-			throw new SyntaxError(`Parameter \`keyID\` is not \`undefined\`, or a string which is non empty!`);
+			throw new TypeError(`Parameter \`keyID\` is not \`undefined\`, or a string which is non empty!`);
 		}
 		if (!(publicKey.length > 0)) {
 			throw new SyntaxError(`Parameter \`publicKey\` is not a string which is non empty!`);
@@ -54,7 +54,7 @@ export class GitHubSodiumSealer {
 	 */
 	encryptToRequestBody(value: string): GitHubRESTSetPublicKeyRequestBody {
 		if (this.#keyID !== "string") {
-			throw new Error(`\`keyID\` was not defined at the initialize stage!`);
+			throw new Error(`Key ID was not defined at the initialize stage!`);
 		}
 		return {
 			encrypted_value: this.encrypt(value),
@@ -80,7 +80,7 @@ export class GitHubSodiumSealer {
 	 * @param {JSONObject} input {@linkcode Response} JSON body.
 	 * @returns {GitHubSodiumSealer} GitHub sodium sealer.
 	 */
-	static createFromJSON(input: JSONObject): GitHubSodiumSealer {
+	static fromJSON(input: JSONObject): GitHubSodiumSealer {
 		if (
 			typeof input.key !== "string" ||
 			typeof input.key_id !== "string"
@@ -94,12 +94,12 @@ export class GitHubSodiumSealer {
 	 * @param {Response} input {@linkcode Response}.
 	 * @returns {Promise<GitHubSodiumSealer>} GitHub sodium sealer.
 	 */
-	static async createFromResponse(input: Response): Promise<GitHubSodiumSealer> {
+	static async fromResponse(input: Response): Promise<GitHubSodiumSealer> {
 		const responsePayload = await input.clone().json();
 		if (!isJSONObject(responsePayload)) {
 			throw new Error(`Parameter \`input\` is not a valid response!`);
 		}
-		return GitHubSodiumSealer.createFromJSON(responsePayload);
+		return GitHubSodiumSealer.fromJSON(responsePayload);
 	}
 	/**
 	 * Encrypt value to the GitHub secret value.
