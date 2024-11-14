@@ -12,9 +12,9 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Checkout Repository"
-        uses: "actions/checkout@v4.2.2"
+        uses: "actions/checkout@v4"
       - name: "Setup Deno"
-        uses: "denoland/setup-deno@v2.0.1"
+        uses: "denoland/setup-deno@v2"
         with:
           deno-version: "^2.0.0"
       - name: "Get Deno Cache Path"
@@ -26,7 +26,7 @@ jobs:
           Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "value=$($DenoInfo.denoDir)" -Confirm:$False -Encoding 'UTF8NoBOM'
       - name: "Restore Deno Cache"
         id: "deno-cache-restore"
-        uses: "actions/cache/restore@v4.1.2"
+        uses: "actions/cache/restore@v4"
         with:
           key: "Deno/${{runner.os}}-${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
           restore-keys: |-
@@ -70,7 +70,7 @@ jobs:
       - name: "Save NPM Package Artifact"
         id: "npm-artifact"
         if: "${{!cancelled() && steps.metadata.outputs.npm-build == 'true' && steps.npm-build.outcome == 'success'}}"
-        uses: "actions/upload-artifact@v4.4.3"
+        uses: "actions/upload-artifact@v4"
         with:
           name: "npm-artifact"
           path: "${{steps.metadata.outputs.npm-root}}"
@@ -79,7 +79,7 @@ jobs:
           include-hidden-files: "true"
       - name: "Save Deno Cache"
         if: "${{!cancelled() && steps.deno-cache-restore.outcome == 'success'}}"
-        uses: "actions/cache/save@v4.1.2"
+        uses: "actions/cache/save@v4"
         with:
           key: "Deno/${{runner.os}}-${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
           path: "${{steps.deno-cache-path.outputs.value}}"
@@ -99,12 +99,12 @@ jobs:
       NODE_AUTH_TOKEN: "${{secrets.NPM_TOKEN}}"
     steps:
       - name: "Restore NPM Package Artifact"
-        uses: "actions/download-artifact@v4.1.8"
+        uses: "actions/download-artifact@v4"
         with:
           name: "npm-artifact"
           path: "${{github.workspace}}"
       - name: "Setup NodeJS"
-        uses: "actions/setup-node@v4.1.0"
+        uses: "actions/setup-node@v4"
         with:
           node-version: "lts/*"
           check-latest: true
@@ -120,7 +120,7 @@ jobs:
           Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "value=$($NpmCachePath)" -Confirm:$False -Encoding 'UTF8NoBOM'
       - name: "Restore NPM Cache"
         id: "npm-cache-restore"
-        uses: "actions/cache/restore@v4.1.2"
+        uses: "actions/cache/restore@v4"
         with:
           key: "NPM/${{runner.os}}-${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
           restore-keys: |-
@@ -228,7 +228,7 @@ jobs:
           gh release upload '${{github.event.release.tag_name}}' '${{steps.metadata.outputs.ballname}}' --clobber --repo $Env:GITHUB_REPOSITORY
       - name: "Save NPM Cache"
         if: "${{!cancelled() && steps.npm-cache-restore.outcome == 'success'}}"
-        uses: "actions/cache/save@v4.1.2"
+        uses: "actions/cache/save@v4"
         with:
           key: "NPM/${{runner.os}}-${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
           path: "${{steps.npm-cache-path.outputs.value}}"
