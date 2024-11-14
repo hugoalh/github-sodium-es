@@ -76,7 +76,7 @@ export class GitHubSodiumSealer {
 		return this.#keyID;
 	}
 	/**
-	 * Initialize the GitHub sodium sealer from the {@linkcode Response} JSON body.
+	 * Initialize the GitHub sodium sealer with the {@linkcode Response} JSON body from get GitHub secret public key via the GitHub REST API.
 	 * @param {JSONObject} input {@linkcode Response} JSON body.
 	 * @returns {GitHubSodiumSealer} GitHub sodium sealer.
 	 */
@@ -90,7 +90,7 @@ export class GitHubSodiumSealer {
 		return new this(input.key, input.key_id);
 	}
 	/**
-	 * Initialize the GitHub sodium sealer from the {@linkcode Response}.
+	 * Initialize the GitHub sodium sealer with the {@linkcode Response} from get GitHub secret public key via the GitHub REST API.
 	 * @param {Response} input {@linkcode Response}.
 	 * @returns {Promise<GitHubSodiumSealer>} GitHub sodium sealer.
 	 */
