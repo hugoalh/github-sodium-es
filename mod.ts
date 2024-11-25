@@ -95,7 +95,7 @@ export class GitHubSodiumSealer {
 	 * @returns {Promise<GitHubSodiumSealer>} GitHub sodium sealer.
 	 */
 	static async fromResponse(input: Response): Promise<GitHubSodiumSealer> {
-		const responsePayload = await input.clone().json();
+		const responsePayload: unknown = await input.clone().json();
 		if (!isJSONObject(responsePayload)) {
 			throw new Error(`Parameter \`input\` is not a valid response!`);
 		}

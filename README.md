@@ -48,11 +48,11 @@ An ES (JavaScript & TypeScript) module to provide an easier and simplified metho
 > - For usage of JSR or NPM resources, it is recommended to import the entire module with the main entrypoint, however it is also able to import part of the module with sub entrypoint if available, please visit the [file `jsr.jsonc`](./jsr.jsonc) property `exports` for available sub entrypoints.
 > - It is recommended to use this module with tag for immutability.
 
-### 🛡️ Require Runtime Permissions
+### 🛡️ Runtime Permissions
 
-*This module does not require any runtime permission.*
+*This module does not request any runtime permission.*
 
-## 🧩 APIs (Excerpt)
+## 🧩 APIs
 
 - ```ts
   class GitHubSodiumSealer {
