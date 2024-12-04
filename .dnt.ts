@@ -4,7 +4,7 @@ import {
 } from "DNT";
 const configJSR = await getMetadataFromConfig("jsr.jsonc");
 await invokeDenoNodeJSTransformer({
-	assetsCopy: [
+	copyAssets: [
 		"LICENSE.md",
 		"README.md"
 	],

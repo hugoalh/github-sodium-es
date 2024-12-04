@@ -59,7 +59,7 @@ jobs:
         run: |-
           deno task jsr-publish-provenance
       - name: "Publish Package To JSR"
-        if: "${{!cancelled() && ((steps.metadata.outputs.jsr-publish-provenance == 'true' && steps.jsr-publish-provenance.outcome == 'failure') || steps.metadata.outputs.jsr-publish-provenance == 'false' && steps.metadata.outputs.jsr-publish == 'true')}}"
+        if: "${{!cancelled() && ((steps.metadata.outputs.jsr-publish-provenance == 'true' && steps.jsr-publish-provenance.outcome == 'failure') || (steps.metadata.outputs.jsr-publish-provenance == 'false' && steps.metadata.outputs.jsr-publish == 'true'))}}"
         run: |-
           deno task jsr-publish
       - name: "Build Package For NPM"
