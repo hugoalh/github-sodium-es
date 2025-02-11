@@ -9,6 +9,7 @@ await invokeDenoNodeJSTransformer({
 		"README.md"
 	],
 	entrypoints: configJSR.getExports(),
+	fixInjectedImports: true,
 	generateDeclarationMap: true,
 	mappings: {
 		"https://esm.sh/libsodium-wrappers@^0.7.15": {
