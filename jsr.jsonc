@@ -23,8 +23,11 @@
 			"**/bench.tsx",
 			"**/test.ts",
 			"**/test.tsx",
+			"_test/**",
 			"npm/**",
-			".dnt.ts"
+			"test/**",
+			".dnt.ts",
+			".*.lint.ts"
 		],
 		"include": [
 			"**/*.json",
