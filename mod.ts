@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+//deno-lint-ignore hugoalh/no-import-npm
 import libsodium from "https://esm.sh/libsodium-wrappers@^0.7.15";
 import {
 	isJSONObject,
