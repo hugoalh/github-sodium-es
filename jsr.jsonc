@@ -23,20 +23,23 @@
 			"**/bench.tsx",
 			"**/test.ts",
 			"**/test.tsx",
+			"_bench/**",
 			"_test/**",
-			"npm/**",
-			"test/**",
+			".forgejo/**",
+			".git/**",
+			".github/**",
+			".vscode/**",
+			"dist/**",
+			".*.lint.ts",
 			".dnt.ts",
-			".*.lint.ts"
-		],
-		"include": [
-			"**/*.json",
-			"**/*.ts",
-			"**/*.tsx",
-			"**/*.wasm",
-			"jsr.jsonc",
-			"LICENSE*.md",
-			"README*.md"
+			".gitattributes",
+			".gitignore",
+			".yamllint.yml",
+			"CITATION.cff",
+			"CODE_OF_CONDUCT.md",
+			"CONTRIBUTING.md",
+			"deno.jsonc",
+			"SECURITY.md"
 		]
 	}
 }

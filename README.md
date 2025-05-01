@@ -6,7 +6,7 @@
 [![JSR: @hugoalh/github-sodium](https://img.shields.io/jsr/v/@hugoalh/github-sodium?label=@hugoalh/github-sodium&labelColor=F7DF1E&logo=jsr&logoColor=000000&style=flat "JSR: @hugoalh/github-sodium")](https://jsr.io/@hugoalh/github-sodium)
 [![NPM: @hugoalh/github-sodium](https://img.shields.io/npm/v/@hugoalh/github-sodium?label=@hugoalh/github-sodium&labelColor=CB3837&logo=npm&logoColor=ffffff&style=flat "NPM: @hugoalh/github-sodium")](https://www.npmjs.com/package/@hugoalh/github-sodium)
 
-An ES (JavaScript & TypeScript) module to provide an easier and simplified method for encrypt GitHub secrets, based on the NPM package [`libsodium.js`](https://www.npmjs.com/package/libsodium-wrappers).
+An ECMAScript (JavaScript & TypeScript) module to provide an easier and simplified method for encrypt GitHub secrets, based on the NPM package [`libsodium.js`](https://www.npmjs.com/package/libsodium-wrappers).
 
 ## 🔰 Begin
 

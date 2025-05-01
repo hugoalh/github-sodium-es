@@ -16,7 +16,7 @@ jobs:
       - name: "Setup Deno"
         uses: "denoland/setup-deno@v2"
         with:
-          deno-version: "^2.2.5"
+          deno-version: "^2.2.10"
       - name: "Get Deno Cache Path"
         id: "deno-cache-path"
         shell: "pwsh"
@@ -24,8 +24,8 @@ jobs:
           [PSCustomObject]$DenoInfo = deno info --json |
             ConvertFrom-Json -Depth 100
           Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "value=$($DenoInfo.denoDir)" -Confirm:$False -Encoding 'UTF8NoBOM'
-      - name: "Restore Deno Cache"
-        id: "deno-cache-restore"
+      - name: "Load Deno Cache"
+        id: "deno-cache-load"
         uses: "actions/cache/restore@v4"
         with:
           key: "${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
@@ -44,7 +44,7 @@ jobs:
           Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "jsr-publish=$(($Null -ine $Config.tasks.('jsr-publish')).ToString().ToLower())"
           Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "jsr-publish-provenance=$(($Null -ine $Config.tasks.('jsr-publish-provenance')).ToString().ToLower())"
           Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-build=$(($Null -ine $Config.tasks.('npm-build')).ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-root=$(Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath ($Config._behaviour.npm.root ?? 'npm'))"
+          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-root=$(Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath ($Config._behaviour.npm.root ?? 'dist/npm'))"
       - name: "Build Repository"
         if: "${{steps.metadata.outputs.build == 'true'}}"
         run: |-
@@ -74,7 +74,7 @@ jobs:
           retention-days: "1"
           include-hidden-files: "true"
       - name: "Save Deno Cache"
-        if: "${{!cancelled() && steps.deno-cache-restore.outcome == 'success'}}"
+        if: "${{!cancelled() && steps.deno-cache-load.outcome == 'success'}}"
         uses: "actions/cache/save@v4"
         with:
           key: "${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
