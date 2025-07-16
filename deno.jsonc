@@ -9,12 +9,11 @@
 		"useTabs": true
 	},
 	"imports": { // IMPORTANT: Only remap development dependencies!
-		"DNT": "https://raw.githubusercontent.com/hugoalh/deno-nodejs-transformer/v0.7.1/mod.ts",
-		"HUGOALH_DENO_LINT_RULES": "https://raw.githubusercontent.com/hugoalh/deno-lint-rules/v0.7.0/mod.ts"
+		"DNT": "https://raw.githubusercontent.com/hugoalh/deno-nodejs-transformer/v0.7.3/mod.ts"
 	},
 	"lint": {
 		"plugins": [
-			"./.hugoalh.lint.ts"
+			"jsr:@hugoalh/deno-lint-rules@^0.10.0/hugoalh/library"
 		],
 		"rules": {
 			"tags": [
@@ -28,6 +27,7 @@
 				"no-eval",
 				"no-non-null-asserted-optional-chain",
 				"no-self-compare",
+				"no-slow-types",
 				"no-sparse-arrays",
 				"no-sync-fn-in-async-fn",
 				"no-throw-literal",

@@ -28,6 +28,7 @@ jobs:
       fail-fast: false
     runs-on: "${{matrix.run_on}}"
     env:
+      CDV_NPM_ROOT: "dist/npm"
       CDV_RUN_LITE: "${{matrix.run_on != 'ubuntu-latest'}}"
     steps:
       - name: "Checkout Repository"
@@ -35,7 +36,7 @@ jobs:
       - name: "Setup Deno"
         uses: "denoland/setup-deno@v2"
         with:
-          deno-version: "^2.2.10"
+          deno-version: "^2.3.3"
       - name: "Get Deno Cache Path"
         id: "deno-cache-path"
         shell: "pwsh"
@@ -62,7 +63,7 @@ jobs:
           Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "build=$(($Null -ine $Config.tasks.build).ToString().ToLower())"
           Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "jsr-check=$(($Null -ine $Config.tasks.('jsr-check')).ToString().ToLower())"
           Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-build=$(($Null -ine $Config.tasks.('npm-build')).ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-root=$(Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath ($Config._behaviour.npm.root ?? 'dist/npm'))"
+          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-root=$(Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath $Env:CDV_NPM_ROOT)"
       - name: "Check Repository"
         if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
         shell: "pwsh"
@@ -77,11 +78,11 @@ jobs:
       - name: "Check Code"
         if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
         run: |-
-          deno check **/*
+          deno check
       - name: "Lint Code"
         if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
         run: |-
-          deno lint
+          deno lint --permit-no-files
       - name: "Check Dependencies Update"
         if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
         run: |-
@@ -103,7 +104,7 @@ jobs:
         id: "test"
         if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
         run: |-
-          deno test --allow-all --coverage --no-prompt --permit-no-files --trace-leaks
+          deno test --allow-all --coverage --coverage-raw-data-only --no-prompt --permit-no-files --trace-leaks
       - name: "List Test Code Coverage"
         if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
         shell: "pwsh"
