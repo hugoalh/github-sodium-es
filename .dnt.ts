@@ -12,13 +12,19 @@ await invokeDenoNodeJSTransformer({
 	fixInjectedImports: true,
 	generateDeclarationMap: true,
 	mappings: {
-		"https://esm.sh/libsodium-wrappers@^0.7.15": {
-			name: "libsodium-wrappers",
-			version: "^0.7.15"
-		},
-		"https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.4/mod.ts": {
+		"https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.5/mod.ts": {
 			name: "@hugoalh/is-json",
-			version: "^1.0.4"
+			version: "^1.0.5"
+		},
+		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/highlevel.ts": {
+			name: "@hugoalh/nacl",
+			version: "^0.1.0",
+			subPath: "highlevel"
+		},
+		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/lowlevel.ts": {
+			name: "@hugoalh/nacl",
+			version: "^0.1.0",
+			subPath: "lowlevel"
 		}
 	},
 	metadata: {

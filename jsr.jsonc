@@ -1,13 +1,16 @@
 {
 	"$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
 	"name": "@hugoalh/github-sodium",
-	"version": "5.1.0",
+	"version": "6.0.0",
 	"exports": {
+		"./basic": "./basic.ts",
+		"./extend": "./extend.ts",
 		".": "./mod.ts"
 	},
 	"imports": {
-		"https://esm.sh/libsodium-wrappers@^0.7.15": "npm:libsodium-wrappers@^0.7.15",
-		"https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.4/mod.ts": "jsr:@hugoalh/is-json@^1.0.4"
+		"https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.5/mod.ts": "jsr:@hugoalh/is-json@^1.0.5",
+		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/highlevel.ts": "jsr:@hugoalh/nacl@^0.1.0/highlevel",
+		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/lowlevel.ts": "jsr:@hugoalh/nacl@^0.1.0/lowlevel"
 	},
 	"publish": {
 		"exclude": [
