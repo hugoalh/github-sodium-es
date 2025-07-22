@@ -4,6 +4,7 @@
 
 | **Versions** | **Release Date** | **Long Term Support Date** | **End Of Life Date** |
 |:-:|:-:|:-:|:-:|
+| v6.X.X | *Unknown* | *Unknown* | *Unknown* |
 | v5.X.X | 2024-01-11 | 2024-01-11 | *Unknown* |
 
 > [!NOTE]

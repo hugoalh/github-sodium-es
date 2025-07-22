@@ -8,6 +8,7 @@
 		".": "./mod.ts"
 	},
 	"imports": {
+		"https://raw.githubusercontent.com/hugoalh/blake-es/v0.1.0/2b.ts": "jsr:@hugoalh/blake@^0.1.0/2b",
 		"https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.5/mod.ts": "jsr:@hugoalh/is-json@^1.0.5",
 		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/highlevel.ts": "jsr:@hugoalh/nacl@^0.1.0/highlevel",
 		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/lowlevel.ts": "jsr:@hugoalh/nacl@^0.1.0/lowlevel"

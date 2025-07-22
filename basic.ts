@@ -1,4 +1,5 @@
 import { Buffer } from "node:buffer";
+import { Blake2B } from "https://raw.githubusercontent.com/hugoalh/blake-es/v0.1.0/2b.ts";
 import {
 	box,
 	boxKeyPair,
@@ -7,7 +8,6 @@ import {
 	boxPublicKeyLength
 } from "https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/highlevel.ts";
 import type { KeyPair } from "https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/lowlevel.ts";
-import { Blake2B } from "./_blake2b.ts";
 const sodiumOverheadLength: number = boxOverheadLength + boxPublicKeyLength;
 /**
  * GitHub sodium sealer for encrypt value to the GitHub secret value.
@@ -33,10 +33,7 @@ export class GitHubSodiumSealer {
 	 * @returns {Uint8Array} A 24 bytes nonce.
 	 */
 	#getNonce(epk: Uint8Array): Uint8Array {
-		const hash: Blake2B = new Blake2B({ length: boxNonceLength });
-		hash.update(epk);
-		hash.update(this.#publicKey);
-		return hash.hash();
+		return new Blake2B({ length: boxNonceLength }).update(epk).update(this.#publicKey).hashUint8Array();
 	}
 	/**
 	 * Encrypt value to the GitHub secret value.

@@ -12,6 +12,11 @@ await invokeDenoNodeJSTransformer({
 	fixInjectedImports: true,
 	generateDeclarationMap: true,
 	mappings: {
+		"https://raw.githubusercontent.com/hugoalh/blake-es/v0.1.0/2b.ts": {
+			name: "@hugoalh/blake",
+			version: "^0.1.0",
+			subPath: "2b"
+		},
 		"https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.5/mod.ts": {
 			name: "@hugoalh/is-json",
 			version: "^1.0.5"
