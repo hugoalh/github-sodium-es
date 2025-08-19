@@ -97,7 +97,7 @@ jobs:
       NODE_AUTH_TOKEN: "${{secrets.NPM_TOKEN}}"
     steps:
       - name: "Restore NPM Package Artifact"
-        uses: "actions/download-artifact@v4"
+        uses: "actions/download-artifact@v5"
         with:
           name: "npm-artifact"
           path: "${{github.workspace}}"
