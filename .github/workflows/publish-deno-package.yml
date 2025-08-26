@@ -4,102 +4,124 @@ on:
   release:
     types:
       - "published"
+  workflow_dispatch:
+    inputs:
+      commit:
+        type: "string"
+        description: "SHA of the commit."
+      jsr:
+        type: "choice"
+        description: "JSR."
+        options:
+          - "auto"
+          - "false"
+          - "true"
+        default: "auto"
+      npm:
+        type: "choice"
+        description: "NPM."
+        options:
+          - "auto"
+          - "false"
+          - "true"
+        default: "auto"
 jobs:
   main:
     permissions:
       contents: "read"
       id-token: "write"
     runs-on: "ubuntu-latest"
-    env:
-      CDV_NPM_ROOT: "dist/npm"
     steps:
       - name: "Checkout Repository"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v5"
+        with:
+          ref: "${{inputs.commit || github.ref}}"
       - name: "Setup Deno"
         uses: "denoland/setup-deno@v2"
         with:
-          deno-version: "^2.3.3"
+          deno-version: "^2.4.5"
       - name: "Get Deno Cache Path"
-        id: "deno-cache-path"
         shell: "pwsh"
         run: |-
-          [PSCustomObject]$DenoInfo = deno info --json |
-            ConvertFrom-Json -Depth 100
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "value=$($DenoInfo.denoDir)" -Confirm:$False -Encoding 'UTF8NoBOM'
+          [PSCustomObject]$DenoInfo = ConvertFrom-Json -InputObject (
+            deno info --json |
+              Join-String -Separator "`n"
+          ) -Depth 100
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_DENO_CACHE_PATH_ROOT=$($DenoInfo.denoDir)" -Confirm:$False -Encoding 'UTF8NoBOM'
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_DENO_CACHE_PATH_FLUSHES=$(ConvertTo-Json -InputObject @(
+            $DenoInfo.typescriptCache
+          ) -Depth 100 -Compress)" -Confirm:$False -Encoding 'UTF8NoBOM'
       - name: "Load Deno Cache"
-        id: "deno-cache-load"
         uses: "actions/cache/restore@v4"
         with:
-          key: "${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
+          key: "${{runner.os}}/Deno/${{github.run_id}}/${{github.run_attempt}}/${{github.job}}"
           restore-keys: |-
-            ${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-
-            ${{runner.os}}/Deno/${{github.run_id}}-
+            ${{runner.os}}/Deno/${{github.run_id}}/${{github.run_attempt}}/
+            ${{runner.os}}/Deno/${{github.run_id}}/
             ${{runner.os}}/Deno/
-          path: "${{steps.deno-cache-path.outputs.value}}"
+          path: "${{env.CDV_DENO_CACHE_PATH_ROOT}}"
       - name: "Resolve Metadata"
-        id: "metadata"
         shell: "pwsh"
+        env:
+          CDV_JSR_DEPLOY_DISPATCH: "${{inputs.jsr || 'auto'}}"
+          CDV_NPM_DEPLOY_DISPATCH: "${{inputs.npm || 'auto'}}"
         run: |-
-          [PSCustomObject]$Config = Get-Content -LiteralPath '.\deno.jsonc' -Encoding 'UTF8NoBOM' |
-            ConvertFrom-Json -Depth 100
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "build=$(($Null -ine $Config.tasks.build).ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "jsr-publish=$(($Null -ine $Config.tasks.('jsr-publish')).ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "jsr-publish-provenance=$(($Null -ine $Config.tasks.('jsr-publish-provenance')).ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-build=$(($Null -ine $Config.tasks.('npm-build')).ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-root=$(Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath $Env:CDV_NPM_ROOT)"
+          [PSCustomObject]$Config = ConvertFrom-Json -InputObject (Get-Content -LiteralPath '.\deno.jsonc' -Raw -Encoding 'UTF8NoBOM') -Depth 100
+          [Boolean]$JSRDeploy = $Env:CDV_JSR_DEPLOY_DISPATCH -eq 'true' -or ($Env:CDV_JSR_DEPLOY_DISPATCH -eq 'auto' -and $Null -ine $Config.tasks.'jsr-check' -and $Null -ine $Config.tasks.'jsr-path-manifest' -and $Null -ine $Config.tasks.'jsr-publish')
+          [Boolean]$NPMDeploy = $Env:CDV_NPM_DEPLOY_DISPATCH -eq 'true' -or ($Env:CDV_NPM_DEPLOY_DISPATCH -eq 'auto' -and $Null -ine $Config.tasks.'npm-build' -and $Null -ine $Config.tasks.'npm-check' -and $Null -ine $Config.tasks.'npm-path-root' -and $Null -ine $Config.tasks.'npm-publish')
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_BUILD=$(($Null -ine $Config.tasks.build).ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_JSR_DEPLOY=$($JSRDeploy.ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_DEPLOY=$($NPMDeploy.ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_STEP_SUMMARY -Value @"
+          # Packages Automatic Deployment Dispatch
+
+          - **JSR:** $($JSRDeploy ? '✔️' : '❌')
+          - **NPM:** $($NPMDeploy ? '✔️' : '❌')
+          "@
       - name: "Build Repository"
-        if: "${{steps.metadata.outputs.build == 'true'}}"
+        id: "build-general"
+        if: "${{env.CDV_BUILD == 'true'}}"
         run: |-
           deno task build
-      - name: "Publish Package To JSR (Provenance)"
-        id: "jsr-publish-provenance"
-        if: "${{steps.metadata.outputs.jsr-publish-provenance == 'true'}}"
-        run: |-
-          deno task jsr-publish-provenance
       - name: "Publish Package To JSR"
-        if: "${{!cancelled() && ((steps.metadata.outputs.jsr-publish-provenance == 'true' && steps.jsr-publish-provenance.outcome == 'failure') || (steps.metadata.outputs.jsr-publish-provenance == 'false' && steps.metadata.outputs.jsr-publish == 'true'))}}"
+        if: "${{!cancelled() && env.CDV_JSR_DEPLOY == 'true' && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skip')}}"
         run: |-
           deno task jsr-publish
       - name: "Build Package For NPM"
-        id: "npm-build"
-        if: "${{!cancelled() && steps.metadata.outputs.npm-build == 'true'}}"
+        id: "build-npm"
+        if: "${{!cancelled() && env.CDV_NPM_DEPLOY == 'true' && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skip')}}"
         run: |-
           deno task npm-build
-      - name: "Save NPM Package Artifact"
-        id: "npm-artifact"
-        if: "${{!cancelled() && steps.metadata.outputs.npm-build == 'true' && steps.npm-build.outcome == 'success'}}"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PATH_ROOT=$(deno task npm-path-root)"
+      - name: "Save Snapshot For NPM"
+        id: "snapshot-npm"
+        if: "${{!cancelled() && env.CDV_NPM_DEPLOY == 'true' && steps.build-npm.outcome == 'success'}}"
         uses: "actions/upload-artifact@v4"
         with:
-          name: "npm-artifact"
-          path: "${{steps.metadata.outputs.npm-root}}"
+          name: "snapshot_npm"
+          path: "${{env.CDV_NPM_PATH_ROOT}}"
           if-no-files-found: "error"
           retention-days: "1"
           include-hidden-files: "true"
-      - name: "Save Deno Cache"
-        if: "${{!cancelled() && steps.deno-cache-load.outcome == 'success'}}"
-        uses: "actions/cache/save@v4"
-        with:
-          key: "${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
-          path: "${{steps.deno-cache-path.outputs.value}}"
     outputs:
-      npm-artifact: "${{steps.npm-artifact.outcome == 'success'}}"
-      npm-build: "${{steps.metadata.outputs.npm-build}}"
+      npm-deploy: "${{env.CDV_NPM_DEPLOY}}"
+      npm-snapshot: "${{steps.snapshot-npm.outputs.artifact-id}}"
   npm:
     name: "NPM"
     permissions:
-      contents: "write"
+      contents: "read"
       id-token: "write"
     needs:
       - "main"
-    if: "${{!cancelled() && needs.main.outputs.npm-build == 'true' && needs.main.outputs.npm-artifact == 'true'}}"
+    if: "${{!cancelled() && needs.main.outputs.npm-deploy == 'true' && needs.main.outputs.npm-snapshot != ''}}"
     runs-on: "ubuntu-latest"
     env:
       NODE_AUTH_TOKEN: "${{secrets.NPM_TOKEN}}"
     steps:
-      - name: "Restore NPM Package Artifact"
-        uses: "actions/download-artifact@v4"
+      - name: "Load Snapshot"
+        uses: "actions/download-artifact@v5"
         with:
-          name: "npm-artifact"
+          name: "snapshot_npm"
           path: "${{github.workspace}}"
       - name: "Setup NodeJS"
         uses: "actions/setup-node@v4"
@@ -108,121 +130,83 @@ jobs:
           check-latest: true
           registry-url: "https://registry.npmjs.org/"
       - name: "Get NPM Cache Path"
-        id: "npm-cache-path"
         shell: "pwsh"
         run: |-
           [String]$NpmCachePath = (
             npm config get cache |
               Join-String -Separator "`n"
           ).Trim()
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "value=$($NpmCachePath)" -Confirm:$False -Encoding 'UTF8NoBOM'
-      - name: "Restore NPM Cache"
-        id: "npm-cache-restore"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_CACHE_PATH=$($NpmCachePath)" -Confirm:$False -Encoding 'UTF8NoBOM'
+      - name: "Load NPM Cache"
         uses: "actions/cache/restore@v4"
         with:
-          key: "${{runner.os}}/NPM/${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
+          key: "${{runner.os}}/NPM/${{github.run_id}}/${{github.run_attempt}}/${{github.job}}"
           restore-keys: |-
-            ${{runner.os}}/NPM/${{github.run_id}}-${{github.run_attempt}}-
-            ${{runner.os}}/NPM/${{github.run_id}}-
+            ${{runner.os}}/NPM/${{github.run_id}}/${{github.run_attempt}}/
+            ${{runner.os}}/NPM/${{github.run_id}}/
             ${{runner.os}}/NPM/
-          path: "${{steps.npm-cache-path.outputs.value}}"
+          path: "${{env.CDV_NPM_CACHE_PATH}}"
       - name: "Resolve Metadata"
-        id: "metadata"
         shell: "pwsh"
         run: |-
           [PSCustomObject]$Manifest = Get-Content -LiteralPath '.\package.json' -Encoding 'UTF8NoBOM' |
             ConvertFrom-Json -Depth 100
-          [SemVer]$VersionManifest = [SemVer]::Parse($Manifest.version)
-          [SemVer]$VersionTag = [SemVer]::Parse(('${{github.event.release.tag_name}}' -ireplace '^v', ''))
-          If ($VersionTag -ine $VersionManifest) {
-            npm version $VersionTag.ToString()
-            $VersionManifest = $VersionTag
-          }
-          [String]$Name = $Manifest.Name
-          [Boolean]$VersionIsPreRelease = $Null -ine $VersionManifest.PreReleaseLabel
-          [Boolean]$TagLatest = !$VersionIsPreRelease
-          [Boolean]$TagPre = $True
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PACKAGE_NAME=$($Manifest.Name)" -Confirm:$False -Encoding 'UTF8NoBOM'
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PACKAGE_VERSION=$($Manifest.version)" -Confirm:$False -Encoding 'UTF8NoBOM'
+      - name: "Publish Package"
+        run: |-
+          npm publish --provenance --tag publish || npm publish --tag publish
+      - name: "Await Registry Update"
+        shell: "pwsh"
+        run: |-
+          Start-Sleep -Seconds 60
+      - name: "Update Distribution Tag"
+        shell: "pwsh"
+        run: |-
           Try {
-            [PSCustomObject]$NpmMetadata = npm show $Name --json |
-              ConvertFrom-Json -Depth 100
-            If ($LASTEXITCODE -ne 0) {
-              Throw 'Package not found!'
+            [String[]]$Versions = ConvertFrom-Json -InputObject (
+              npm view $Env:CDV_NPM_PACKAGE_NAME versions --json |
+                Join-String -Separator "`n"
+            ) -Depth 100
+            [SemVer]$VersionCurrent = [SemVer]::Parse($Env:CDV_NPM_PACKAGE_VERSION)
+            [SemVer]$VersionLatest = $Versions |
+              ForEach-Object -Process {
+                [SemVer]::Parse($_)
+              } |
+              Sort-Object |
+              Select-Object -Last 1
+            If ($VersionCurrent -gt $VersionLatest) {
+              npm dist-tag add "$($Env:CDV_NPM_PACKAGE_NAME)@$($Env:CDV_NPM_PACKAGE_VERSION)" latest
             }
-            If ($VersionManifest -ile [SemVer]::Parse(($NpmMetadata.'dist-tags'.latest ?? '0.0.0'))) {
-              $TagLatest = $False
-            }
-            If ($VersionManifest -ile [SemVer]::Parse(($NpmMetadata.'dist-tags'.pre ?? '0.0.0'))) {
-              $TagPre = $False
-            }
           }
-          Catch {
-            Write-Warning -Message "Unable to resolve package NPM publish tags: $_"
-            $LASTEXITCODE = 0
-          }
-          [String[]]$Tags = @()
-          If ($TagLatest) {
-            $Tags += 'latest'
-          }
-          If ($TagPre) {
-            $Tags += 'pre'
-          }
-          If (!$VersionIsPreRelease) {
-            $Tags += "latest-$($VersionManifest.Major)"
-          }
-          $Tags += "pre-$($VersionManifest.Major)"
-          If ($Tags.Count -eq 0) {
-            Write-Error -Message 'No NPM publish tags!' -ErrorAction 'Stop'
-          }
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "name=$($Name)" -Confirm:$False -Encoding 'UTF8NoBOM'
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "version=$($VersionManifest.ToString())" -Confirm:$False -Encoding 'UTF8NoBOM'
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "descriptor=$($Name)@$($VersionManifest.ToString())" -Confirm:$False -Encoding 'UTF8NoBOM'
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "build=$(($Null -ne $Manifest.scripts.'build').ToString().ToLower())" -Confirm:$False -Encoding 'UTF8NoBOM'
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "tags-first=$($Tags[0])" -Confirm:$False -Encoding 'UTF8NoBOM'
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "tags-rest=$(
-            $Tags |
-              Select-Object -SkipIndex 0 |
-              Join-String -Separator ','
-          )" -Confirm:$False -Encoding 'UTF8NoBOM'
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "ballname=$($Name -ireplace '^@', '' -ireplace '\/', '-')-$($VersionManifest.ToString()).tgz" -Confirm:$False -Encoding 'UTF8NoBOM'
-      - name: "Install Dependencies"
-        if: "${{steps.metadata.outputs.build == 'true'}}"
-        run: |-
-          npm install
-      - name: "Build Repository"
-        if: "${{steps.metadata.outputs.build == 'true'}}"
-        run: |-
-          npm run build
-      - name: "Publish Package To NPM With Tag `${{steps.metadata.outputs.tags-first}}` (Provenance)"
-        id: "npm-publish-provenance"
-        shell: "pwsh"
-        run: |-
-          npm publish --provenance --tag '${{steps.metadata.outputs.tags-first}}'
-      - name: "Publish Package To NPM With Tag `${{steps.metadata.outputs.tags-first}}`"
-        if: "${{!cancelled() && steps.npm-publish-provenance.outcome == 'failure'}}"
-        id: "npm-publish-raw"
-        shell: "pwsh"
-        run: |-
-          npm publish --tag '${{steps.metadata.outputs.tags-first}}'
-      - name: "Publish Package To NPM With Rest Tags"
-        if: "${{!cancelled() && (steps.npm-publish-provenance.outcome == 'success' || steps.npm-publish-raw.outcome == 'success') && steps.metadata.outputs.tags-rest != ''}}"
-        shell: "pwsh"
-        run: |-
-          [String]$Descriptor = '${{steps.metadata.outputs.descriptor}}'
-          [String[]]$TagsRest = '${{steps.metadata.outputs.tags-rest}}' -isplit ','
-          ForEach ($TagRest In $TagsRest) {
-            npm dist-tag add $Descriptor $TagRest
-          }
-      - name: "Upload Package `${{steps.metadata.outputs.ballname}}` To GitHub Release Tag `${{github.event.release.tag_name}}`"
-        if: "${{!cancelled() && steps.metadata.outcome == 'success'}}"
-        env:
-          GH_TOKEN: "${{secrets.GITHUB_TOKEN}}"
-        shell: "pwsh"
-        run: |-
-          npm pack
-          gh release upload '${{github.event.release.tag_name}}' '${{steps.metadata.outputs.ballname}}' --clobber --repo $Env:GITHUB_REPOSITORY
+          Catch { }
+          npm dist-tag rm $Env:CDV_NPM_PACKAGE_NAME publish
       - name: "Save NPM Cache"
-        if: "${{!cancelled() && steps.npm-cache-restore.outcome == 'success'}}"
+        if: "${{!cancelled()}}"
         uses: "actions/cache/save@v4"
         with:
-          key: "${{runner.os}}/NPM/${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
-          path: "${{steps.npm-cache-path.outputs.value}}"
+          key: "${{runner.os}}/NPM/${{github.run_id}}/${{github.run_attempt}}/${{github.job}}"
+          path: "${{env.CDV_NPM_CACHE_PATH}}"
+  post:
+    permissions:
+      actions: "write"
+      contents: "write"
+    needs:
+      - "main"
+      - "npm"
+    if: "${{!cancelled()}}"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Delete Snapshot For NPM"
+        if: "${{!cancelled() && needs.main.outputs.npm-deploy == 'true' && needs.main.outputs.npm-snapshot != ''}}"
+        shell: "pwsh"
+        env:
+          CDV_GHAAT: "${{secrets.GITHUB_TOKEN}}"
+          CDV_SNAPSHOT_NPM: "${{needs.main.outputs.npm-snapshot}}"
+        run: |-
+          Invoke-RestMethod -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/artifacts/$($Env:CDV_SNAPSHOT_NPM)" -Headers @{
+            Accept = 'application/vnd.github+json';
+            Authorization = "Bearer $($Env:CDV_GHAAT)";
+            'X-GitHub-Api-Version' = '2022-11-28';
+          } -Method 'Delete'
+        continue-on-error: true

@@ -1,0 +1,124 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: "Test"
+concurrency:
+  group: "test"
+on:
+  pull_request:
+    branches:
+      - "**"
+    types:
+      - "edited"
+      - "opened"
+      - "reopened"
+      - "synchronize"
+  push:
+    branches:
+      - "**"
+  workflow_dispatch:
+jobs:
+  main:
+    if: "${{!(github.event_name == 'pull_request' && github.event.pull_request.head.repo.id == github.event.pull_request.base.repo.id)}}"
+    permissions:
+      contents: "read"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout Repository"
+        uses: "actions/checkout@v5"
+      - name: "Setup Deno"
+        uses: "denoland/setup-deno@v2"
+        with:
+          deno-version: "^2.3.3"
+      - name: "Get Deno Cache Path"
+        id: "deno-cache-path"
+        shell: "pwsh"
+        run: |-
+          [PSCustomObject]$DenoInfo = deno info --json |
+            ConvertFrom-Json -Depth 100
+          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "value=$($DenoInfo.denoDir)" -Confirm:$False -Encoding 'UTF8NoBOM'
+      - name: "Load Deno Cache"
+        id: "deno-cache-load"
+        uses: "actions/cache/restore@v4"
+        with:
+          key: "${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
+          restore-keys: |-
+            ${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-
+            ${{runner.os}}/Deno/${{github.run_id}}-
+            ${{runner.os}}/Deno/
+          path: "${{steps.deno-cache-path.outputs.value}}"
+      - name: "Analyze Repository"
+        id: "analyze"
+        shell: "pwsh"
+        run: |-
+          [PSCustomObject]$Config = Get-Content -LiteralPath '.\deno.jsonc' -Encoding 'UTF8NoBOM' |
+            ConvertFrom-Json -Depth 100
+          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "build=$(($Null -ine $Config.tasks.build).ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "jsr-check=$(($Null -ine $Config.tasks.('jsr-check')).ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-build=$(($Null -ine $Config.tasks.('npm-build')).ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-root=$(Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath $Env:CDV_NPM_ROOT)"
+      - name: "Check Repository"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
+        shell: "pwsh"
+        run: |-
+          [String[]]$FilesForbid = Get-ChildItem -LiteralPath '.\' -Include @('*.js', '*.jsx', '*.mjs', '*.mts') -File -Recurse -Name
+          If ($FilesForbid.Count -gt 0) {
+            Write-Error -Message "Repository contains forbid file formats (``.js``, ``.jsx``, ``.mjs``, ``.mts``): $(
+              $FilesForbid |
+                Join-String -Separator ', '
+            )" -ErrorAction 'Stop'
+          }
+      - name: "Check Code"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
+        run: |-
+          deno check
+      - name: "Lint Code"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
+        run: |-
+          deno lint --permit-no-files
+      - name: "Check Dependencies Update"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
+        run: |-
+          deno outdated
+      - name: "Build Repository"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success' && steps.analyze.outputs.build == 'true'}}"
+        run: |-
+          deno task build
+      - name: "Check Deployment For Remote Import"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
+        shell: "pwsh"
+        run: |-
+          Get-ChildItem -LiteralPath '.\' -File -Recurse -Name
+      - name: "Check Deployment For JSR"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && steps.analyze.outputs.jsr-check == 'true'}}"
+        run: |-
+          deno task jsr-check
+      - name: "Test Code"
+        id: "test"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
+        run: |-
+          deno test --allow-all --coverage --coverage-raw-data-only --no-prompt --permit-no-files --trace-leaks
+      - name: "List Test Code Coverage"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
+        shell: "pwsh"
+        run: |-
+          If ((Test-Path -LiteralPath '.\coverage' -PathType 'Container') -and (Get-ChildItem -LiteralPath '.\coverage' -File).Count -gt 0) {
+            deno coverage
+          }
+      - name: "Benchmark Code"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
+        run: |-
+          deno bench --allow-all --no-prompt --permit-no-files
+      - name: "Build Package For NPM"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && steps.analyze.outputs.npm-build == 'true'}}"
+        run: |-
+          deno task npm-build
+      - name: "Check Deployment For NPM"
+        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && steps.analyze.outputs.npm-build == 'true'}}"
+        working-directory: "${{steps.analyze.outputs.npm-root}}"
+        run: |-
+          npm publish --dry-run
+      - name: "Save Deno Cache"
+        if: "${{!cancelled() && steps.deno-cache-load.outcome == 'success'}}"
+        uses: "actions/cache/save@v4"
+        with:
+          key: "${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
+          path: "${{steps.deno-cache-path.outputs.value}}"

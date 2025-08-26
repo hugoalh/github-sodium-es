@@ -7,8 +7,8 @@ updates:
     schedule:
       interval: "weekly"
     labels:
-      - "Platform/GitHubActions"
-      - "Type/Dependency 📦"
+      - "dependency 📦"
+      - "github-actions"
     pull-request-branch-name:
       separator: "/"
     cooldown:

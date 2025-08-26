@@ -41,20 +41,48 @@
 	"lock": false,
 	"tasks": {
 		"jsr-check": {
-			"command": "deno publish --allow-dirty --config jsr.jsonc --dry-run --no-provenance",
-			"description": "Check deployment for JSR."
+			"command": "deno publish --allow-dirty --config $(deno task jsr-path-manifest) --dry-run --no-provenance",
+			"description": "Check package for JSR."
+		},
+		"jsr-path-manifest": {
+			"command": "echo \"jsr.jsonc\"",
+			"description": "Get JSR manifest file path."
 		},
 		"jsr-publish": {
-			"command": "deno publish --allow-dirty --config jsr.jsonc --no-provenance",
+			"command": "deno task jsr-publish-provenance-true || deno task jsr-publish-provenance-false",
 			"description": "Publish package to JSR."
 		},
-		"jsr-publish-provenance": {
-			"command": "deno publish --allow-dirty --config jsr.jsonc",
-			"description": "Publish package to JSR (provenance)."
+		"jsr-publish-provenance-false": {
+			"command": "deno publish --allow-dirty --allow-slow-types --config $(deno task jsr-path-manifest) --no-provenance",
+			"description": "Publish package to JSR without provenance."
+		},
+		"jsr-publish-provenance-true": {
+			"command": "deno publish --allow-dirty --allow-slow-types --config $(deno task jsr-path-manifest)",
+			"description": "Publish package to JSR with provenance."
 		},
 		"npm-build": {
 			"command": "deno run --allow-all --no-prompt --quiet .dnt.ts",
 			"description": "Build package for NPM."
+		},
+		"npm-check": {
+			"command": "deno task --cwd $(deno task npm-path-root) --eval \"npm publish --dry-run\"",
+			"description": "Check package for NPM."
+		},
+		"npm-path-root": {
+			"command": "echo \"$INIT_CWD/dist/npm\"",
+			"description": "Get NPM root path."
+		},
+		"npm-publish": {
+			"command": "deno task npm-publish-provenance-true || deno task npm-publish-provenance-false",
+			"description": "Publish package to NPM."
+		},
+		"npm-publish-provenance-false": {
+			"command": "deno task --cwd $(deno task npm-path-root) --eval \"npm publish --tag publish",
+			"description": "Publish package to NPM without provenance."
+		},
+		"npm-publish-provenance-true": {
+			"command": "deno task --cwd $(deno task npm-path-root) --eval \"npm publish --provenance --tag publish",
+			"description": "Publish package to NPM with provenance."
 		}
 	},
 	"unstable": [
