@@ -8,22 +8,20 @@ on:
     inputs:
       commit:
         type: "string"
-        description: "SHA of the commit."
+        description: "Target commit SHA."
       jsr:
         type: "choice"
-        description: "JSR."
+        description: "Whether publish package to JSR."
         options:
           - "auto"
           - "false"
-          - "true"
         default: "auto"
       npm:
         type: "choice"
-        description: "NPM."
+        description: "Whether publish package to NPM."
         options:
           - "auto"
           - "false"
-          - "true"
         default: "auto"
 jobs:
   main:
@@ -63,48 +61,69 @@ jobs:
       - name: "Resolve Metadata"
         shell: "pwsh"
         env:
-          CDV_JSR_DEPLOY_DISPATCH: "${{inputs.jsr || 'auto'}}"
-          CDV_NPM_DEPLOY_DISPATCH: "${{inputs.npm || 'auto'}}"
+          CDV_JSR_PUBLISH_DISPATCH: "${{inputs.jsr || 'auto'}}"
+          CDV_NPM_PUBLISH_DISPATCH: "${{inputs.npm || 'auto'}}"
         run: |-
           [PSCustomObject]$Config = ConvertFrom-Json -InputObject (Get-Content -LiteralPath '.\deno.jsonc' -Raw -Encoding 'UTF8NoBOM') -Depth 100
-          [Boolean]$JSRDeploy = $Env:CDV_JSR_DEPLOY_DISPATCH -eq 'true' -or ($Env:CDV_JSR_DEPLOY_DISPATCH -eq 'auto' -and $Null -ine $Config.tasks.'jsr-check' -and $Null -ine $Config.tasks.'jsr-path-manifest' -and $Null -ine $Config.tasks.'jsr-publish')
-          [Boolean]$NPMDeploy = $Env:CDV_NPM_DEPLOY_DISPATCH -eq 'true' -or ($Env:CDV_NPM_DEPLOY_DISPATCH -eq 'auto' -and $Null -ine $Config.tasks.'npm-build' -and $Null -ine $Config.tasks.'npm-check' -and $Null -ine $Config.tasks.'npm-path-root' -and $Null -ine $Config.tasks.'npm-publish')
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_BUILD=$(($Null -ine $Config.tasks.build).ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_JSR_DEPLOY=$($JSRDeploy.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_DEPLOY=$($NPMDeploy.ToString().ToLower())"
+          [Boolean]$Build = $Null -ine $Config.tasks.build
+          [Boolean]$JSRPublish = $Env:CDV_JSR_PUBLISH_DISPATCH -ieq 'auto' -and $Null -ine $Config.tasks.'jsr-publish'
+          [Boolean]$NPMBuild = $Null -ine $Config.tasks.'npm-build'
+          [Boolean]$NPMDistributionAbsolute = $Null -ine $Config.tasks.'npm-var-distribution-absolute'
+          [Boolean]$NPMPublish = $Env:CDV_NPM_PUBLISH_DISPATCH -ieq 'auto' $Null -ine $Config.tasks.'npm-publish'
+          [Boolean]$NPMPublishCommand = $Null -ine $Config.tasks.'npm-publish-command'
           Add-Content -LiteralPath $Env:GITHUB_STEP_SUMMARY -Value @"
-          # Packages Automatic Deployment Dispatch
+          # Dispatch
 
-          - **JSR:** $($JSRDeploy ? '✔️' : '❌')
-          - **NPM:** $($NPMDeploy ? '✔️' : '❌')
+          - **Build:** $($Build ? '✔️' : '❌')
+          - **JSR:**
+            - **Publish:** $($JSRPublish ? '✔️' : '❌')
+          - **NPM:**
+            - **Build:** $($NPMBuild ? '✔️' : '❌')
+            - **DistributionAbsolute:** $($NPMDistributionAbsolute ? '✔️' : '❌')
+            - **Publish:** $($NPMPublish ? '✔️' : '❌')
+              - **Command:** $($NPMPublishCommand ? '✔️' : '❌')
           "@
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_BUILD=$(($Null -ine $Config.tasks.build).ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_JSR_PUBLISH=$($JSRPublish.ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_BUILD=$($NPMBuild.ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PUBLISH=$($NPMPublish.ToString().ToLower())"
+          If ($NPMPublish) {
+            Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_DISTRIBUTION_ABSOLUTE=$((
+              deno task npm-var-distribution-absolute |
+                Join-String -Separator ''
+            ).Trim())"
+            Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PUBLISH_COMMAND=$((
+              deno task npm-publish-command |
+                Join-String -Separator ''
+            ).Trim())"
+          }
       - name: "Build Repository"
         id: "build-general"
         if: "${{env.CDV_BUILD == 'true'}}"
         run: |-
           deno task build
       - name: "Publish Package To JSR"
-        if: "${{!cancelled() && env.CDV_JSR_DEPLOY == 'true' && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skip')}}"
+        if: "${{!cancelled() && env.CDV_JSR_PUBLISH == 'true' && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skip')}}"
         run: |-
           deno task jsr-publish
       - name: "Build Package For NPM"
         id: "build-npm"
-        if: "${{!cancelled() && env.CDV_NPM_DEPLOY == 'true' && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skip')}}"
+        if: "${{!cancelled() && env.CDV_NPM_PUBLISH == 'true' && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skip') && env.CDV_NPM_BUILD == 'true'}}"
         run: |-
           deno task npm-build
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PATH_ROOT=$(deno task npm-path-root)"
       - name: "Save Snapshot For NPM"
         id: "snapshot-npm"
-        if: "${{!cancelled() && env.CDV_NPM_DEPLOY == 'true' && steps.build-npm.outcome == 'success'}}"
+        if: "${{!cancelled() && env.CDV_NPM_PUBLISH == 'true' && (steps.build-npm.outcome == 'success' || steps.build-npm.outcome == 'skip')}}"
         uses: "actions/upload-artifact@v4"
         with:
           name: "snapshot_npm"
-          path: "${{env.CDV_NPM_PATH_ROOT}}"
+          path: "${{env.CDV_NPM_DISTRIBUTION_ABSOLUTE}}"
           if-no-files-found: "error"
           retention-days: "1"
           include-hidden-files: "true"
     outputs:
-      npm-deploy: "${{env.CDV_NPM_DEPLOY}}"
+      npm-publish: "${{env.CDV_NPM_PUBLISH}}"
+      npm-publish-command: "${{env.CDV_NPM_PUBLISH_COMMAND}}"
       npm-snapshot: "${{steps.snapshot-npm.outputs.artifact-id}}"
   npm:
     name: "NPM"
@@ -113,10 +132,11 @@ jobs:
       id-token: "write"
     needs:
       - "main"
-    if: "${{!cancelled() && needs.main.outputs.npm-deploy == 'true' && needs.main.outputs.npm-snapshot != ''}}"
+    if: "${{!cancelled() && needs.main.outputs.npm-publish == 'true' && needs.main.outputs.npm-publish-command != '' && needs.main.outputs.npm-snapshot != ''}}"
     runs-on: "ubuntu-latest"
     env:
       NODE_AUTH_TOKEN: "${{secrets.NPM_TOKEN}}"
+      NPM_CONFIG_PROVENANCE: "true"
     steps:
       - name: "Load Snapshot"
         uses: "actions/download-artifact@v5"
@@ -154,8 +174,7 @@ jobs:
           Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PACKAGE_NAME=$($Manifest.Name)" -Confirm:$False -Encoding 'UTF8NoBOM'
           Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PACKAGE_VERSION=$($Manifest.version)" -Confirm:$False -Encoding 'UTF8NoBOM'
       - name: "Publish Package"
-        run: |-
-          npm publish --provenance --tag publish || npm publish --tag publish
+        run: "${{needs.main.outputs.npm-publish-command}}"
       - name: "Await Registry Update"
         shell: "pwsh"
         run: |-
@@ -198,7 +217,7 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: "Delete Snapshot For NPM"
-        if: "${{!cancelled() && needs.main.outputs.npm-deploy == 'true' && needs.main.outputs.npm-snapshot != ''}}"
+        if: "${{!cancelled() && needs.main.outputs.npm-publish == 'true' && needs.main.outputs.npm-snapshot != ''}}"
         shell: "pwsh"
         env:
           CDV_GHAAT: "${{secrets.GITHUB_TOKEN}}"
