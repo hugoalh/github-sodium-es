@@ -8,7 +8,7 @@
 		"singleQuote": false,
 		"useTabs": true
 	},
-	"imports": { // IMPORTANT: Only remap development dependencies!
+	"imports": { // IMPORTANT: Only for development dependencies!
 		"DNT": "https://raw.githubusercontent.com/hugoalh/deno-nodejs-transformer/v0.7.3/mod.ts"
 	},
 	"lint": {
@@ -41,11 +41,11 @@
 	"lock": false,
 	"tasks": {
 		"jsr-check": {
-			"command": "deno publish --allow-dirty --config $(deno task jsr-var-manifest-relative) --dry-run --no-provenance",
+			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\" --dry-run --no-provenance",
 			"description": "Check package for JSR."
 		},
 		"jsr-publish": {
-			"command": "deno publish --allow-dirty --config $(deno task jsr-var-manifest-relative)",
+			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\"",
 			"description": "Publish package to JSR."
 		},
 		"jsr-var-manifest-relative": {
@@ -57,24 +57,12 @@
 			"description": "Build package for NPM."
 		},
 		"npm-check": {
-			"command": "deno task --cwd $(deno task npm-var-distribution-absolute) --eval $(deno task npm-check-command)",
+			"command": "deno task --cwd \"$(deno task npm-var-distribution-relative)\" --eval \"npm publish --dry-run\"",
 			"description": "Check package for NPM."
 		},
-		"npm-check-command": {
-			"command": "echo \"npm publish --dry-run\"",
-			"description": "Get command for check package for NPM."
-		},
 		"npm-publish": {
-			"command": "deno task --cwd $(deno task npm-var-distribution-absolute) --eval $(deno task npm-publish-command)",
+			"command": "deno task --cwd \"$(deno task npm-var-distribution-relative)\" --eval \"npm publish --tag publish\"",
 			"description": "Publish package to NPM."
-		},
-		"npm-publish-command": {
-			"command": "echo \"npm publish --tag publish\"",
-			"description": "Get command for publish package to NPM."
-		},
-		"npm-var-distribution-absolute": {
-			"command": "deno eval --no-config --no-lock --no-npm --no-remote \"import { join as joinPath } from \\\"node:path\\\"; console.log(joinPath(Deno.env.get(\\\"INIT_CWD\\\"), \\\"$(deno task npm-var-distribution-relative)\\\"));\"",
-			"description": "Variable of the NPM distribution directory absolute path."
 		},
 		"npm-var-distribution-relative": {
 			"command": "echo \"dist/npm\"",
