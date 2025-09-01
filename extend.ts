@@ -16,7 +16,7 @@ export class GitHubSodiumSealerExtend extends GitHubSodiumSealer {
 	}
 	#keyID: string;
 	/**
-	 * Initialize the GitHub sodium sealer.
+	 * Initialize.
 	 * @param {string} publicKey Public key (recipient's public key), which get from the GitHub organization or repository, need for encrypt value to the GitHub secret value before create or update the GitHub secret.
 	 * @param {string} keyID ID of the key, which get from the GitHub organization or repository, need for create or update the GitHub secret. This parameter is optional if no need to output as part of the {@linkcode Request} body.
 	 */
@@ -40,21 +40,14 @@ export class GitHubSodiumSealerExtend extends GitHubSodiumSealer {
 	}
 	/**
 	 * Get the ID of the key.
-	 * @returns {string | undefined} ID of the key.
+	 * @returns {string} ID of the key.
 	 */
-	getKeyID(): string | undefined {
-		return this.#keyID;
-	}
-	/**
-	 * Get the ID of the key.
-	 * @returns {string | undefined} ID of the key.
-	 */
-	get keyID(): string | undefined {
+	get keyID(): string {
 		return this.#keyID;
 	}
 	/**
 	 * Initialize the GitHub sodium sealer with the {@linkcode Response} JSON body from get GitHub secret public key via the GitHub REST API.
-	 * @param {JSONObject} input {@linkcode Response} JSON body.
+	 * @param {JSONObject} input {@linkcode Response} body from the GitHub REST API.
 	 * @returns {GitHubSodiumSealerExtend} GitHub sodium sealer.
 	 */
 	static fromJSON(input: JSONObject): GitHubSodiumSealerExtend {
@@ -68,7 +61,7 @@ export class GitHubSodiumSealerExtend extends GitHubSodiumSealer {
 	}
 	/**
 	 * Initialize the GitHub sodium sealer with the {@linkcode Response} from get GitHub secret public key via the GitHub REST API.
-	 * @param {Response} input {@linkcode Response}.
+	 * @param {Response} input {@linkcode Response} from the GitHub REST API.
 	 * @returns {Promise<GitHubSodiumSealerExtend>} GitHub sodium sealer.
 	 */
 	static async fromResponse(input: Response): Promise<GitHubSodiumSealerExtend> {

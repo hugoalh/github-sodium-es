@@ -12,23 +12,23 @@ await invokeDenoNodeJSTransformer({
 	fixInjectedImports: true,
 	generateDeclarationMap: true,
 	mappings: {
-		"https://raw.githubusercontent.com/hugoalh/blake-es/v0.1.0/2b.ts": {
+		"https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.1/2b.ts": {
 			name: "@hugoalh/blake",
-			version: "^0.1.0",
+			version: "^0.2.1",
 			subPath: "2b"
 		},
 		"https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.5/mod.ts": {
 			name: "@hugoalh/is-json",
 			version: "^1.0.5"
 		},
-		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/highlevel.ts": {
+		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.1/highlevel.ts": {
 			name: "@hugoalh/nacl",
-			version: "^0.1.0",
+			version: "^0.1.1",
 			subPath: "highlevel"
 		},
-		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/lowlevel.ts": {
+		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.1/lowlevel.ts": {
 			name: "@hugoalh/nacl",
-			version: "^0.1.0",
+			version: "^0.1.1",
 			subPath: "lowlevel"
 		}
 	},

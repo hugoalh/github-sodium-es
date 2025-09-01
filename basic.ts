@@ -1,13 +1,13 @@
 import { Buffer } from "node:buffer";
-import { Blake2B } from "https://raw.githubusercontent.com/hugoalh/blake-es/v0.1.0/2b.ts";
+import { Blake2B } from "https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.1/2b.ts";
 import {
 	box,
 	boxKeyPair,
 	boxNonceLength,
 	boxOverheadLength,
 	boxPublicKeyLength
-} from "https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/highlevel.ts";
-import type { KeyPair } from "https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.0/lowlevel.ts";
+} from "https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.1/highlevel.ts";
+import type { KeyPair } from "https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.1/lowlevel.ts";
 const sodiumOverheadLength: number = boxOverheadLength + boxPublicKeyLength;
 /**
  * GitHub sodium sealer for encrypt value to the GitHub secret value.
@@ -18,7 +18,7 @@ export class GitHubSodiumSealer {
 	}
 	#publicKey: Uint8Array;
 	/**
-	 * Initialize the GitHub sodium sealer.
+	 * Initialize.
 	 * @param {string} publicKey Public key (recipient's public key), which get from the GitHub organization or repository, need for encrypt value to the GitHub secret value before create or update the GitHub secret.
 	 */
 	constructor(publicKey: string) {
@@ -33,7 +33,7 @@ export class GitHubSodiumSealer {
 	 * @returns {Uint8Array} A 24 bytes nonce.
 	 */
 	#getNonce(epk: Uint8Array): Uint8Array {
-		return new Blake2B({ length: boxNonceLength }).update(epk).update(this.#publicKey).hashUint8Array();
+		return new Blake2B({ length: boxNonceLength }).update(epk).update(this.#publicKey).hash();
 	}
 	/**
 	 * Encrypt value to the GitHub secret value.

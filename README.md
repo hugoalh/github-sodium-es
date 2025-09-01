@@ -63,8 +63,7 @@ An ECMAScript (JavaScript & TypeScript) module to provide an easier and simplifi
   class GitHubSodiumSealerExtend extends GitHubSodiumSealer {
     constructor(publicKey: string, keyID: string);
     encryptToRequestBody(value: string): GitHubRESTSetSecretRequestBody;
-    getKeyID(): string | undefined;
-    get keyID(): string | undefined;
+    get keyID(): string;
     static fromJSON(input: JSONObject): GitHubSodiumSealerExtend;
     static fromResponse(input: Response): Promise<GitHubSodiumSealerExtend>;
   }

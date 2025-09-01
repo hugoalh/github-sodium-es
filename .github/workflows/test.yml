@@ -3,21 +3,9 @@ name: "Test"
 concurrency:
   group: "test"
 on:
-  pull_request:
-    branches:
-      - "**"
-    types:
-      - "edited"
-      - "opened"
-      - "reopened"
-      - "synchronize"
-  push:
-    branches:
-      - "**"
   workflow_dispatch:
 jobs:
-  main:
-    if: "${{!(github.event_name == 'pull_request' && github.event.pull_request.head.repo.id == github.event.pull_request.base.repo.id)}}"
+  set:
     permissions:
       contents: "read"
     runs-on: "ubuntu-latest"
@@ -27,98 +15,48 @@ jobs:
       - name: "Setup Deno"
         uses: "denoland/setup-deno@v2"
         with:
-          deno-version: "^2.3.3"
-      - name: "Get Deno Cache Path"
-        id: "deno-cache-path"
+          deno-version: "^2.4.5"
+      - name: "Set"
+        id: "set"
         shell: "pwsh"
+        env:
+          TEST_GHPAT: "${{secrets.TEST_GHPAT}}"
         run: |-
-          [PSCustomObject]$DenoInfo = deno info --json |
-            ConvertFrom-Json -Depth 100
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "value=$($DenoInfo.denoDir)" -Confirm:$False -Encoding 'UTF8NoBOM'
-      - name: "Load Deno Cache"
-        id: "deno-cache-load"
-        uses: "actions/cache/restore@v4"
-        with:
-          key: "${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
-          restore-keys: |-
-            ${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-
-            ${{runner.os}}/Deno/${{github.run_id}}-
-            ${{runner.os}}/Deno/
-          path: "${{steps.deno-cache-path.outputs.value}}"
-      - name: "Analyze Repository"
-        id: "analyze"
+          [String]$SampleValue = (New-Guid).Guid.ToUpper() -ireplace '-', ''
+          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "value=$($SampleValue)" -Confirm:$False -Encoding 'UTF8NoBOM'
+          [PSCustomObject]$PublicKey = Invoke-RestMethod -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/secrets/public-key" -Headers @{
+            Accept = 'application/vnd.github+json';
+            Authorization = "Bearer $($Env:TEST_GHPAT)";
+            'X-GitHub-Api-Version' = '2022-11-28';
+          } -Method 'Get'
+          [String]$SampleEncrypted = (
+            deno eval "import { GitHubSodiumSealer } from `"./basic.ts`"; console.log(new GitHubSodiumSealer(`"$($PublicKey.key)`").encrypt(`"$($SampleValue)`"));" |
+              Join-String -Separator "`n"
+          ).Trim()
+          Invoke-RestMethod -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/secrets/TEST_VALUE" -Headers @{
+            Accept = 'application/vnd.github+json';
+            'Content-Type' = 'application/json';
+            Authorization = "Bearer $($Env:TEST_GHPAT)";
+            'X-GitHub-Api-Version' = '2022-11-28';
+          } -Method 'Put' -Body (ConvertTo-Json -InputObject @{
+            encrypted_value = $SampleEncrypted;
+            key_id = $PublicKey.key_id;
+          } -Depth 100 -Compress)
+    outputs:
+      value: "${{steps.set.outputs.value}}"
+  get:
+    needs:
+      - "set"
+    permissions:
+      contents: "read"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Get"
         shell: "pwsh"
+        env:
+          TEST_VALUE_FROM: "${{secrets.TEST_VALUE}}"
+          TEST_VALUE_ORIGINAL: "${{needs.set.outputs.value}}"
         run: |-
-          [PSCustomObject]$Config = Get-Content -LiteralPath '.\deno.jsonc' -Encoding 'UTF8NoBOM' |
-            ConvertFrom-Json -Depth 100
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "build=$(($Null -ine $Config.tasks.build).ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "jsr-check=$(($Null -ine $Config.tasks.('jsr-check')).ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-build=$(($Null -ine $Config.tasks.('npm-build')).ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "npm-root=$(Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath $Env:CDV_NPM_ROOT)"
-      - name: "Check Repository"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
-        shell: "pwsh"
-        run: |-
-          [String[]]$FilesForbid = Get-ChildItem -LiteralPath '.\' -Include @('*.js', '*.jsx', '*.mjs', '*.mts') -File -Recurse -Name
-          If ($FilesForbid.Count -gt 0) {
-            Write-Error -Message "Repository contains forbid file formats (``.js``, ``.jsx``, ``.mjs``, ``.mts``): $(
-              $FilesForbid |
-                Join-String -Separator ', '
-            )" -ErrorAction 'Stop'
+          If ($Env:TEST_VALUE_FROM -cne $Env:TEST_VALUE_ORIGINAL) {
+            Exit 1
           }
-      - name: "Check Code"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
-        run: |-
-          deno check
-      - name: "Lint Code"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
-        run: |-
-          deno lint --permit-no-files
-      - name: "Check Dependencies Update"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
-        run: |-
-          deno outdated
-      - name: "Build Repository"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && steps.analyze.outputs.build == 'true'}}"
-        run: |-
-          deno task build
-      - name: "Check Deployment For Remote Import"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
-        shell: "pwsh"
-        run: |-
-          Get-ChildItem -LiteralPath '.\' -File -Recurse -Name
-      - name: "Check Deployment For JSR"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && steps.analyze.outputs.jsr-check == 'true'}}"
-        run: |-
-          deno task jsr-check
-      - name: "Test Code"
-        id: "test"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
-        run: |-
-          deno test --allow-all --coverage --coverage-raw-data-only --no-prompt --permit-no-files --trace-leaks
-      - name: "List Test Code Coverage"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
-        shell: "pwsh"
-        run: |-
-          If ((Test-Path -LiteralPath '.\coverage' -PathType 'Container') -and (Get-ChildItem -LiteralPath '.\coverage' -File).Count -gt 0) {
-            deno coverage
-          }
-      - name: "Benchmark Code"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
-        run: |-
-          deno bench --allow-all --no-prompt --permit-no-files
-      - name: "Build Package For NPM"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && steps.analyze.outputs.npm-build == 'true'}}"
-        run: |-
-          deno task npm-build
-      - name: "Check Deployment For NPM"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && steps.analyze.outputs.npm-build == 'true'}}"
-        working-directory: "${{steps.analyze.outputs.npm-root}}"
-        run: |-
-          npm publish --dry-run
-      - name: "Save Deno Cache"
-        if: "${{!cancelled() && steps.deno-cache-load.outcome == 'success'}}"
-        uses: "actions/cache/save@v4"
-        with:
-          key: "${{runner.os}}/Deno/${{github.run_id}}-${{github.run_attempt}}-${{github.job}}"
-          path: "${{steps.deno-cache-path.outputs.value}}"
