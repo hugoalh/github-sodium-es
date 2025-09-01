@@ -1,0 +1,24 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: "Test - Get"
+on:
+  workflow_dispatch:
+    inputs:
+      value:
+        type: "string"
+        description: "Value."
+        required: true
+jobs:
+  get:
+    permissions:
+      contents: "read"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Get"
+        shell: "pwsh"
+        env:
+          TEST_VALUE_FROM: "${{secrets.TEST_VALUE}}"
+          TEST_VALUE_ORIGINAL: "${{inputs.value}}"
+        run: |-
+          If ($Env:TEST_VALUE_FROM -cne $Env:TEST_VALUE_ORIGINAL) {
+            Exit 1
+          }

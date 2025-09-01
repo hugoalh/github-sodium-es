@@ -1,7 +1,5 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
-name: "Test"
-concurrency:
-  group: "test"
+name: "Test - Set"
 on:
   workflow_dispatch:
 jobs:
@@ -23,7 +21,7 @@ jobs:
           TEST_GHPAT: "${{secrets.TEST_GHPAT}}"
         run: |-
           [String]$SampleValue = (New-Guid).Guid.ToUpper() -ireplace '-', ''
-          Add-Content -LiteralPath $Env:GITHUB_OUTPUT -Value "value=$($SampleValue)" -Confirm:$False -Encoding 'UTF8NoBOM'
+          Write-Host -Object $SampleValue
           [PSCustomObject]$PublicKey = Invoke-RestMethod -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/secrets/public-key" -Headers @{
             Accept = 'application/vnd.github+json';
             Authorization = "Bearer $($Env:TEST_GHPAT)";
@@ -42,22 +40,3 @@ jobs:
             encrypted_value = $SampleEncrypted;
             key_id = $PublicKey.key_id;
           } -Depth 100 -Compress)
-          Start-Sleep -Seconds 60
-    outputs:
-      value: "${{steps.set.outputs.value}}"
-  get:
-    needs:
-      - "set"
-    permissions:
-      contents: "read"
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: "Get"
-        shell: "pwsh"
-        env:
-          TEST_VALUE_FROM: "${{secrets.TEST_VALUE}}"
-          TEST_VALUE_ORIGINAL: "${{needs.set.outputs.value}}"
-        run: |-
-          If ($Env:TEST_VALUE_FROM -cne $Env:TEST_VALUE_ORIGINAL) {
-            Exit 1
-          }
