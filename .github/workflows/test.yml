@@ -33,7 +33,7 @@ jobs:
             deno eval "import { GitHubSodiumSealer } from `"./basic.ts`"; console.log(new GitHubSodiumSealer(`"$($PublicKey.key)`").encrypt(`"$($SampleValue)`"));" |
               Join-String -Separator "`n"
           ).Trim()
-          Invoke-RestMethod -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/secrets/TEST_VALUE" -Headers @{
+          Invoke-WebRequest -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/secrets/TEST_VALUE" -Headers @{
             Accept = 'application/vnd.github+json';
             'Content-Type' = 'application/json';
             Authorization = "Bearer $($Env:TEST_GHPAT)";
@@ -42,6 +42,7 @@ jobs:
             encrypted_value = $SampleEncrypted;
             key_id = $PublicKey.key_id;
           } -Depth 100 -Compress)
+          Start-Sleep -Seconds 60
     outputs:
       value: "${{steps.set.outputs.value}}"
   get:
