@@ -148,18 +148,25 @@ jobs:
         if: "${{!cancelled() && steps.publish-npm-pre.outcome == 'success'}}"
         run: |-
           Try {
-            [String[]]$Versions = ConvertFrom-Json -InputObject (
+            [SemVer]$VersionCurrent = [SemVer]::Parse($Env:CDV_NPM_PACKAGE_VERSION)
+            [SemVer[]]$Versions = ConvertFrom-Json -InputObject (
               npm view $Env:CDV_NPM_PACKAGE_NAME versions --json |
                 Join-String -Separator "`n"
-            ) -Depth 100
-            [SemVer]$VersionCurrent = [SemVer]::Parse($Env:CDV_NPM_PACKAGE_VERSION)
-            [SemVer]$VersionLatest = $Versions |
+            ) -Depth 100 |
               ForEach-Object -Process {
                 [SemVer]::Parse($_)
               } |
-              Sort-Object |
-              Select-Object -Last 1
-            If ($VersionCurrent -ge $VersionLatest) {
+              Where-Object -FilterScript {
+                $Null -eq $_.PreReleaseLabel
+              } |
+              Sort-Object
+            If (
+              $Versions.Length -eq 0 -or
+              $VersionCurrent -ge (
+                $Versions |
+                  Select-Object -Last 1
+              )
+            ) {
               npm dist-tag add "$($Env:CDV_NPM_PACKAGE_NAME)@$($Env:CDV_NPM_PACKAGE_VERSION)" latest
             }
           }
