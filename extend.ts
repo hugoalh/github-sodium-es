@@ -1,6 +1,7 @@
 import {
 	isJSONObject,
-	type JSONObject
+	type JSONObject,
+	type JSONValue
 } from "https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.5/mod.ts";
 import { GitHubSodiumSealer } from "./basic.ts";
 export interface GitHubRESTSetSecretRequestBody {
@@ -46,7 +47,7 @@ export class GitHubSodiumSealerExtend extends GitHubSodiumSealer {
 		return this.#keyID;
 	}
 	/**
-	 * Initialize the GitHub sodium sealer with the {@linkcode Response} JSON body from get GitHub secret public key via the GitHub REST API.
+	 * Initialize with the {@linkcode Response} JSON body from get GitHub secret public key via the GitHub REST API.
 	 * @param {JSONObject} input {@linkcode Response} body from the GitHub REST API.
 	 * @returns {GitHubSodiumSealerExtend} GitHub sodium sealer.
 	 */
@@ -55,19 +56,19 @@ export class GitHubSodiumSealerExtend extends GitHubSodiumSealer {
 			typeof input.key !== "string" ||
 			typeof input.key_id !== "string"
 		) {
-			throw new Error(`Parameter \`input\` is not a valid response JSON body!`);
+			throw new Error(`Parameter \`input\` is not a valid GitHub REST API response JSON body!`);
 		}
 		return new this(input.key, input.key_id);
 	}
 	/**
-	 * Initialize the GitHub sodium sealer with the {@linkcode Response} from get GitHub secret public key via the GitHub REST API.
+	 * Initialize with the {@linkcode Response} from get GitHub secret public key via the GitHub REST API.
 	 * @param {Response} input {@linkcode Response} from the GitHub REST API.
 	 * @returns {Promise<GitHubSodiumSealerExtend>} GitHub sodium sealer.
 	 */
 	static async fromResponse(input: Response): Promise<GitHubSodiumSealerExtend> {
-		const responsePayload: unknown = await input.clone().json();
+		const responsePayload: JSONValue = await input.clone().json();
 		if (!isJSONObject(responsePayload)) {
-			throw new Error(`Parameter \`input\` is not a valid response!`);
+			throw new Error(`Parameter \`input\` is not a valid GitHub REST API response!`);
 		}
 		return this.fromJSON(responsePayload);
 	}

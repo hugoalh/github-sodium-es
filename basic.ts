@@ -25,7 +25,7 @@ export class GitHubSodiumSealer {
 		if (!(publicKey.length > 0)) {
 			throw new SyntaxError(`Parameter \`publicKey\` is not a string which is non empty!`);
 		}
-		this.#publicKey = Buffer.from(publicKey, "base64");
+		this.#publicKey = Uint8Array.from(Buffer.from(publicKey, "base64"));
 	}
 	/**
 	 * Get the 24 bytes nonce, which is a Blake2B digest from the ephemeral public key and the recipient's public key.
