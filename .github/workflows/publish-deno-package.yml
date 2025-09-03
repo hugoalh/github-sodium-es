@@ -141,37 +141,48 @@ jobs:
           Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PACKAGE_NAME=$($Manifest.Name)" -Confirm:$False -Encoding 'UTF8NoBOM'
           Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PACKAGE_VERSION=$($Manifest.version)" -Confirm:$False -Encoding 'UTF8NoBOM'
       - name: "Publish Package To NPM"
+        id: "publish-npm-main"
         if: "${{!cancelled() && steps.publish-npm-pre.outcome == 'success'}}"
         run: |-
           deno task npm-publish
       - name: "Publish Package To NPM (Post)"
         if: "${{!cancelled() && steps.publish-npm-pre.outcome == 'success'}}"
+        shell: "pwsh"
+        env:
+          CDV_NPM_PUBLISH_SUCCESS: "${{steps.publish-npm-main.outcome == 'success'}}"
         run: |-
-          Try {
-            [SemVer]$VersionCurrent = [SemVer]::Parse($Env:CDV_NPM_PACKAGE_VERSION)
-            [SemVer[]]$Versions = ConvertFrom-Json -InputObject (
-              npm view $Env:CDV_NPM_PACKAGE_NAME versions --json |
-                Join-String -Separator "`n"
-            ) -Depth 100 |
-              ForEach-Object -Process {
-                [SemVer]::Parse($_)
-              } |
-              Where-Object -FilterScript {
-                $Null -eq $_.PreReleaseLabel
-              } |
-              Sort-Object
-            If (
-              $Versions.Length -eq 0 -or
-              $VersionCurrent -ge (
-                $Versions |
-                  Select-Object -Last 1
-              )
-            ) {
-              npm dist-tag add "$($Env:CDV_NPM_PACKAGE_NAME)@$($Env:CDV_NPM_PACKAGE_VERSION)" latest
+          If ($Env:CDV_NPM_PUBLISH_SUCCESS -ieq 'true') {
+            Try {
+              [SemVer]$VersionCurrent = [SemVer]::Parse($Env:CDV_NPM_PACKAGE_VERSION)
+              [SemVer[]]$VersionsPublished = ConvertFrom-Json -InputObject (
+                npm view $Env:CDV_NPM_PACKAGE_NAME versions --json |
+                  Join-String -Separator "`n"
+              ) -Depth 100 |
+                ForEach-Object -Process {
+                  [SemVer]::Parse($_)
+                }
+              [SemVer[]]$VersionsStable = (@($VersionCurrent) + $VersionsPublished) |
+                Where-Object -FilterScript {
+                  $Null -ieq $_.PreReleaseLabel
+                } |
+                Get-Unique |
+                Sort-Object
+              If ($Null -ieq $VersionCurrent.PreReleaseLabel -and (
+                $VersionsStable.Length -eq 1 -or
+                $VersionCurrent -ge (
+                  $VersionsStable |
+                    Select-Object -Last 1
+                )
+              )) {
+                npm dist-tag add "$($Env:CDV_NPM_PACKAGE_NAME)@$($Env:CDV_NPM_PACKAGE_VERSION)" latest
+              }
             }
+            Catch { }
+            Try {
+              npm dist-tag rm $Env:CDV_NPM_PACKAGE_NAME publish
+            }
+            Catch { }
           }
-          Catch { }
-          npm dist-tag rm $Env:CDV_NPM_PACKAGE_NAME publish
           npm --global config delete provenance
           npm --global config delete //registry.npmjs.org/:_authToken
       - name: "Flush Cache"
