@@ -1,0 +1,361 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: "Publish ECMAScript (Deno Based)"
+on:
+  release:
+    types:
+      - "published"
+  workflow_dispatch:
+    inputs:
+      commit:
+        type: "string"
+        description: "Target commit SHA."
+      codeberg-npm:
+        type: "choice"
+        description: "Whether publish to Codeberg NPM."
+        options:
+          - "auto"
+          - "false"
+        default: "auto"
+      github-npm:
+        type: "choice"
+        description: "Whether publish to GitHub NPM."
+        options:
+          - "auto"
+          - "false"
+        default: "auto"
+      jsr:
+        type: "choice"
+        description: "Whether publish to JSR."
+        options:
+          - "auto"
+          - "false"
+        default: "auto"
+      kaki87-npm:
+        type: "choice"
+        description: "Whether publish to KaKi87 NPM."
+        options:
+          - "auto"
+          - "false"
+        default: "auto"
+      npm:
+        type: "choice"
+        description: "Whether publish to NPM."
+        options:
+          - "auto"
+          - "false"
+        default: "auto"
+jobs:
+  main:
+    permissions:
+      contents: "read"
+      id-token: "write"
+      packages: "write"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout Repository"
+        uses: "actions/checkout@v5"
+        with:
+          ref: "${{inputs.commit || github.ref}}"
+      - name: "Setup Deno"
+        uses: "denoland/setup-deno@v2"
+        with:
+          deno-version: "^2.5.0"
+      - name: "Setup NodeJS"
+        uses: "actions/setup-node@v5"
+        with:
+          node-version: "lts/*"
+          check-latest: true
+      - name: "Get Cache Path"
+        shell: "pwsh"
+        run: |-
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
+          [PSCustomObject]$DenoInfo = ConvertFrom-Json -InputObject (
+            deno info --json |
+              Join-String -Separator "`n"
+          ) -Depth 100
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_DENO_CACHE_PATH_ROOT=$($DenoInfo.denoDir)" -Confirm:$False -Encoding 'UTF8NoBOM'
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_DENO_CACHE_PATH_FLUSHES=$(ConvertTo-Json -InputObject @(
+            $DenoInfo.typescriptCache
+          ) -Depth 100 -Compress)" -Confirm:$False -Encoding 'UTF8NoBOM'
+          [PSCustomObject]$NPMConfig = ConvertFrom-Json -InputObject (
+            npm config list --json |
+              Join-String -Separator "`n"
+          ) -Depth 100
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_CACHE_PATH_ROOT=$($NPMConfig.cache)" -Confirm:$False -Encoding 'UTF8NoBOM'
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_CACHE_PATH_FLUSHES=$(ConvertTo-Json -InputObject @(
+            (Join-Path -Path $NPMConfig.cache -ChildPath '_logs')
+          ) -Depth 100 -Compress)" -Confirm:$False -Encoding 'UTF8NoBOM'
+      - name: "Load Deno Cache"
+        uses: "actions/cache/restore@v4"
+        with:
+          key: "${{runner.os}}/Deno/${{github.run_id}}/${{github.run_attempt}}/${{github.job}}"
+          restore-keys: |-
+            ${{runner.os}}/Deno/${{github.run_id}}/${{github.run_attempt}}/
+            ${{runner.os}}/Deno/${{github.run_id}}/
+            ${{runner.os}}/Deno/
+          path: "${{env.CDV_DENO_CACHE_PATH_ROOT}}"
+      - name: "Load NPM Cache"
+        uses: "actions/cache/restore@v4"
+        with:
+          key: "${{runner.os}}/NPM/${{github.run_id}}/${{github.run_attempt}}/${{github.job}}"
+          restore-keys: |-
+            ${{runner.os}}/NPM/${{github.run_id}}/${{github.run_attempt}}/
+            ${{runner.os}}/NPM/${{github.run_id}}/
+            ${{runner.os}}/NPM/
+          path: "${{env.CDV_NPM_CACHE_PATH_ROOT}}"
+      - name: "Setup NPM"
+        run: |-
+          npm --global config set git-tag-version false
+      - name: "Analyze Repository"
+        shell: "pwsh"
+        env:
+          CDV_CODEBERG_NPM_DISPATCH: "${{inputs.codeberg-npm || 'auto'}}"
+          CDV_GITHUB_NPM_DISPATCH: "${{inputs.github-npm || 'auto'}}"
+          CDV_JSR_DISPATCH: "${{inputs.jsr || 'auto'}}"
+          CDV_KAKI87_NPM_DISPATCH: "${{inputs.kaki87-npm || 'auto'}}"
+          CDV_NPM_DISPATCH: "${{inputs.npm || 'auto'}}"
+        run: |-
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
+          [PSCustomObject]$Config = ConvertFrom-Json -InputObject (Get-Content -LiteralPath '.\deno.jsonc' -Raw -Encoding 'UTF8NoBOM') -Depth 100
+          [Boolean]$Build = $Null -ine $Config.tasks.build
+          [Boolean]$CodebergNPMBuild = $Null -ine $Config.tasks.'codeberg-npm-build'
+          [Boolean]$CodebergNPMDistributionRelative = $Null -ine $Config.tasks.'codeberg-npm-var-distribution-relative'
+          [Boolean]$CodebergNPMPublish = $Env:CDV_CODEBERG_NPM_DISPATCH -ieq 'auto' -and $Null -ine $Config.tasks.'codeberg-npm-publish'
+          [Boolean]$GitHubNPMBuild = $Null -ine $Config.tasks.'github-npm-build'
+          [Boolean]$GitHubNPMDistributionRelative = $Null -ine $Config.tasks.'github-npm-var-distribution-relative'
+          [Boolean]$GitHubNPMPublish = $Env:CDV_GITHUB_NPM_DISPATCH -ieq 'auto' -and $Null -ine $Config.tasks.'github-npm-publish'
+          [Boolean]$JSRBuild = $Null -ine $Config.tasks.'jsr-build'
+          [Boolean]$JSRManifestRelative = $Null -ine $Config.tasks.'jsr-var-manifest-relative'
+          [Boolean]$JSRPublish = $Env:CDV_JSR_DISPATCH -ieq 'auto' -and $Null -ine $Config.tasks.'jsr-publish'
+          [Boolean]$KaKi87NPMBuild = $Null -ine $Config.tasks.'kaki87-npm-build'
+          [Boolean]$KaKi87NPMDistributionRelative = $Null -ine $Config.tasks.'kaki87-npm-var-distribution-relative'
+          [Boolean]$KaKi87NPMPublish = $Env:CDV_KAKI87_NPM_DISPATCH -ieq 'auto' -and $Null -ine $Config.tasks.'kaki87-npm-publish'
+          [Boolean]$NPMBuild = $Null -ine $Config.tasks.'npm-build'
+          [Boolean]$NPMDistributionRelative = $Null -ine $Config.tasks.'npm-var-distribution-relative'
+          [Boolean]$NPMPublish = $Env:CDV_NPM_DISPATCH -ieq 'auto' -and $Null -ine $Config.tasks.'npm-publish'
+          Add-Content -LiteralPath $Env:GITHUB_STEP_SUMMARY -Value @"
+          # Dispatch
+
+          - **Build:** $($Build ? '✔️' : '❌')
+          - **Codeberg - NPM:**
+            - **Build:** $($CodebergNPMBuild ? '✔️' : '❌')
+            - **DistributionRelative:** $($CodebergNPMDistributionRelative ? '✔️' : '❌')
+            - **Publish:** $($CodebergNPMPublish ? '✔️' : '❌')
+          - **GitHub - NPM:**
+            - **Build:** $($GitHubNPMBuild ? '✔️' : '❌')
+            - **DistributionRelative:** $($GitHubNPMDistributionRelative ? '✔️' : '❌')
+            - **Publish:** $($GitHubNPMPublish ? '✔️' : '❌')
+          - **JSR:**
+            - **Build:** $($JSRBuild ? '✔️' : '❌')
+            - **ManifestRelative:** $($JSRManifestRelative ? '✔️' : '❌')
+            - **Publish:** $($JSRPublish ? '✔️' : '❌')
+          - **KaKi87 - NPM:**
+            - **Build:** $($KaKi87NPMBuild ? '✔️' : '❌')
+            - **DistributionRelative:** $($KaKi87NPMDistributionRelative ? '✔️' : '❌')
+            - **Publish:** $($KaKi87NPMPublish ? '✔️' : '❌')
+          - **NPM:**
+            - **Build:** $($NPMBuild ? '✔️' : '❌')
+            - **DistributionRelative:** $($NPMDistributionRelative ? '✔️' : '❌')
+            - **Publish:** $($NPMPublish ? '✔️' : '❌')
+          "@
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_BUILD=$($Build.ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_CODEBERG_NPM_BUILD=$($CodebergNPMBuild.ToString().ToLower())"
+          If ($CodebergNPMPublish) {
+            Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_CODEBERG_NPM_DISTRIBUTION_RELATIVE=$((
+              deno task codeberg-npm-var-distribution-relative |
+                Join-String -Separator "`n"
+            ).Trim())"
+          }
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_CODEBERG_NPM_PUBLISH=$($CodebergNPMPublish.ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_GITHUB_NPM_BUILD=$($GitHubNPMBuild.ToString().ToLower())"
+          If ($GitHubNPMPublish) {
+            Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_GITHUB_NPM_DISTRIBUTION_RELATIVE=$((
+              deno task github-npm-var-distribution-relative |
+                Join-String -Separator "`n"
+            ).Trim())"
+          }
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_GITHUB_NPM_PUBLISH=$($GitHubNPMPublish.ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_JSR_BUILD=$($JSRBuild.ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_JSR_PUBLISH=$($JSRPublish.ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_KAKI87_NPM_BUILD=$($KaKi87NPMBuild.ToString().ToLower())"
+          If ($KaKi87NPMPublish) {
+            Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_KAKI87_NPM_DISTRIBUTION_RELATIVE=$((
+              deno task kaki87-npm-var-distribution-relative |
+                Join-String -Separator "`n"
+            ).Trim())"
+          }
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_KAKI87_NPM_PUBLISH=$($KaKi87NPMPublish.ToString().ToLower())"
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_BUILD=$($NPMBuild.ToString().ToLower())"
+          If ($NPMPublish) {
+            Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_DISTRIBUTION_RELATIVE=$((
+              deno task npm-var-distribution-relative |
+                Join-String -Separator "`n"
+            ).Trim())"
+          }
+          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_PUBLISH=$($NPMPublish.ToString().ToLower())"
+          If (
+            $CodebergNPMPublish -or
+            $GitHubNPMPublish -or
+            $KaKi87NPMPublish -or
+            $NPMPublish
+          ) {
+            [String]$NPHPath = Join-Path -Path $Env:RUNNER_TEMP -ChildPath 'nodejs-publish-helper.ps1'
+            Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPH_PATH=$NPHPath"
+            Set-Content -LiteralPath $NPHPath -Value @'
+          Param (
+            [Parameter(Mandatory = $True, Position = 0)][String]$Endpoint,
+            [Parameter(Mandatory = $True, Position = 1)][String]$Token,
+            [String]$PublishTag = 'recent',
+            [Switch]$SupportProvenance
+          )
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
+          npm --global config set registry "https://$($Endpoint)/"
+          npm --global config set "//$($Endpoint)/:_authToken" $Token
+          If ($SupportProvenance.IsPresent) {
+            npm --global config set provenance true
+          }
+          [PSCustomObject]$Manifest = ConvertFrom-Json -InputObject (Get-Content -LiteralPath '.\package.json' -Raw -Encoding 'UTF8NoBOM') -Depth 100
+          Try {
+            npm publish --tag $PublishTag
+          }
+          Catch { }
+          Finally {
+            [Boolean]$PublishIsSuccess = $LASTEXITCODE -eq 0
+            $LASTEXITCODE = 0
+          }
+          If ($PublishIsSuccess) {
+            Try {
+              [SemVer]$PackageVersion = [SemVer]::Parse($Manifest.version)
+              [SemVer[]]$Versions = @($PackageVersion) + (
+                ConvertFrom-Json -InputObject (
+                  npm view $Manifest.name versions --json |
+                    Join-String -Separator "`n"
+                ) -Depth 100 |
+                ForEach-Object -Process {
+                  [SemVer]::Parse($_)
+                }
+              )
+              [SemVer[]]$VersionsStable = $Versions |
+                Where-Object -FilterScript {
+                  $Null -ieq $_.PreReleaseLabel
+                } |
+                Get-Unique |
+                Sort-Object
+              If ($Null -ieq $PackageVersion.PreReleaseLabel -and $PackageVersion -ge (
+                $VersionsStable |
+                  Select-Object -Last 1
+              )) {
+                npm dist-tag add "$($Manifest.name)@$($Manifest.version)" latest
+              }
+            }
+            Catch {
+              $LASTEXITCODE = 0
+            }
+          }
+          Try {
+            If ($SupportProvenance.IsPresent) {
+              npm --global config set provenance true
+            }
+            npm --global config delete "//$($Endpoint)/:_authToken"
+            npm --global config delete registry
+          }
+          Catch {
+            $LASTEXITCODE = 0
+          }
+          $LASTEXITCODE = $PublishIsSuccess ? 0 : 1
+          '@ -Encoding 'UTF8NoBOM'
+          }
+      - name: "Build Repository"
+        id: "build-general"
+        if: "${{env.CDV_BUILD == 'true'}}"
+        run: |-
+          deno task build
+      - name: "Publish To JSR"
+        if: "${{!cancelled() && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skipped') && env.CDV_JSR_PUBLISH == 'true'}}"
+        shell: "pwsh"
+        run: |-
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
+          If ($Env:CDV_JSR_BUILD -ieq 'true') {
+            deno task jsr-build
+          }
+          deno task jsr-publish
+      - name: "Publish To Codeberg NPM"
+        if: "${{!cancelled() && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skipped') && env.CDV_CODEBERG_NPM_PUBLISH == 'true'}}"
+        shell: "pwsh"
+        env:
+          CDV_CODEBERG_NPM_TOKEN: "${{secrets.CODEBERG_NPM_TOKEN}}"
+        run: |-
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
+          If ($Env:CDV_CODEBERG_NPM_BUILD -ieq 'true') {
+            deno task codeberg-npm-build
+          }
+          Set-Location -LiteralPath (Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath $Env:CDV_CODEBERG_NPM_DISTRIBUTION_RELATIVE)
+          . $Env:CDV_NPH_PATH -Endpoint 'codeberg.org/api/packages/hugoalh/npm' -Token $Env:CDV_CODEBERG_NPM_TOKEN
+      - name: "Publish To GitHub NPM"
+        if: "${{!cancelled() && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skipped') && env.CDV_GITHUB_NPM_PUBLISH == 'true'}}"
+        shell: "pwsh"
+        env:
+          CDV_GITHUB_NPM_TOKEN: "${{secrets.GITHUB_TOKEN}}"
+        run: |-
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
+          If ($Env:CDV_GITHUB_NPM_BUILD -ieq 'true') {
+            deno task github-npm-build
+          }
+          Set-Location -LiteralPath (Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath $Env:CDV_GITHUB_NPM_DISTRIBUTION_RELATIVE)
+          . $Env:CDV_NPH_PATH -Endpoint 'npm.pkg.github.com' -Token $Env:CDV_GITHUB_NPM_TOKEN
+      - name: "Publish To KaKi87 NPM"
+        if: "${{!cancelled() && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skipped') && env.CDV_KAKI87_NPM_PUBLISH == 'true'}}"
+        shell: "pwsh"
+        env:
+          CDV_KAKI87_NPM_TOKEN: "${{secrets.KAKI87_NPM_TOKEN}}"
+        run: |-
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
+          If ($Env:CDV_KAKI87_NPM_BUILD -ieq 'true') {
+            deno task kaki87-npm-build
+          }
+          Set-Location -LiteralPath (Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath $Env:CDV_KAKI87_NPM_DISTRIBUTION_RELATIVE)
+          . $Env:CDV_NPH_PATH -Endpoint 'git.kaki87.net/api/packages/hugoalh/npm' -Token $Env:CDV_KAKI87_NPM_TOKEN
+      - name: "Publish To NPM"
+        if: "${{!cancelled() && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skipped') && env.CDV_NPM_PUBLISH == 'true'}}"
+        shell: "pwsh"
+        env:
+          CDV_NPM_TOKEN: "${{secrets.NPM_TOKEN}}"
+        run: |-
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
+          If ($Env:CDV_NPM_BUILD -ieq 'true') {
+            deno task npm-build
+          }
+          Set-Location -LiteralPath (Join-Path -Path $Env:GITHUB_WORKSPACE -ChildPath $Env:CDV_NPM_DISTRIBUTION_RELATIVE)
+          . $Env:CDV_NPH_PATH -Endpoint 'registry.npmjs.org' -Token $Env:CDV_NPM_TOKEN -SupportProvenance
+      - name: "Flush Cache"
+        if: "${{!cancelled()}}"
+        shell: "pwsh"
+        run: |-
+          ConvertFrom-Json -InputObject ($Env:CDV_DENO_CACHE_PATH_FLUSHES ?? '[]') -Depth 100 |
+            ForEach-Object -Process {
+              Remove-Item -LiteralPath $_ -Recurse -Confirm:$False -ErrorAction 'SilentlyContinue'
+            }
+          ConvertFrom-Json -InputObject ($Env:CDV_NPM_CACHE_PATH_FLUSHES ?? '[]') -Depth 100 |
+            ForEach-Object -Process {
+              Remove-Item -LiteralPath $_ -Recurse -Confirm:$False -ErrorAction 'SilentlyContinue'
+            }
+      - name: "Save Deno Cache"
+        if: "${{!cancelled()}}"
+        uses: "actions/cache/save@v4"
+        with:
+          key: "${{runner.os}}/Deno/${{github.run_id}}/${{github.run_attempt}}/${{github.job}}"
+          path: "${{env.CDV_DENO_CACHE_PATH_ROOT}}"
+      - name: "Save NPM Cache"
+        if: "${{!cancelled()}}"
+        uses: "actions/cache/save@v4"
+        with:
+          key: "${{runner.os}}/NPM/${{github.run_id}}/${{github.run_attempt}}/${{github.job}}"
+          path: "${{env.CDV_NPM_CACHE_PATH_ROOT}}"

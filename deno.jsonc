@@ -1,5 +1,5 @@
 {
-	"$schema": "https://deno.land/x/deno/cli/schemas/config-file.v1.json",
+	"$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
 	"fmt": {
 		"indentWidth": 4,
 		"lineWidth": 800,
@@ -18,6 +18,9 @@
 		"rules": {
 			"tags": [
 				"recommended"
+			],
+			"exclude": [
+				"no-import-prefix"
 			],
 			"include": [
 				"default-param-last",
@@ -42,27 +45,27 @@
 	"tasks": {
 		"jsr-check": {
 			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\" --dry-run --no-provenance",
-			"description": "Check package for JSR."
+			"description": "Check for JSR."
 		},
 		"jsr-publish": {
 			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\"",
-			"description": "Publish package to JSR."
+			"description": "Publish to JSR."
 		},
 		"jsr-var-manifest-relative": {
 			"command": "echo \"jsr.jsonc\"",
 			"description": "Variable of the JSR manifest file relative path."
 		},
 		"npm-build": {
-			"command": "deno run --allow-all --no-prompt --quiet .dnt.ts",
-			"description": "Build package for NPM."
+			"command": "deno run --allow-all --no-prompt --quiet .npm.build.ts",
+			"description": "Build for NPM."
 		},
 		"npm-check": {
 			"command": "deno task --cwd \"$(deno task npm-var-distribution-relative)\" --eval \"npm publish --dry-run\"",
-			"description": "Check package for NPM."
+			"description": "Check for NPM."
 		},
 		"npm-publish": {
-			"command": "deno task --cwd \"$(deno task npm-var-distribution-relative)\" --eval \"npm publish --tag publish\"",
-			"description": "Publish package to NPM."
+			"command": "deno task --cwd \"$(deno task npm-var-distribution-relative)\" --eval \"npm publish --tag recent\"",
+			"description": "Publish to NPM."
 		},
 		"npm-var-distribution-relative": {
 			"command": "echo \"dist/npm\"",
