@@ -9,7 +9,8 @@
 		"useTabs": true
 	},
 	"imports": { // IMPORTANT: Only for development dependencies!
-		"DNT": "https://raw.githubusercontent.com/hugoalh/deno-nodejs-transformer/v0.7.3/mod.ts"
+		"DNT": "jsr:@hugoalh/deno-nodejs-transformer@^0.8.0",
+		"STD_JSONC": "jsr:@std/jsonc@^1.0.2"
 	},
 	"lint": {
 		"plugins": [
@@ -44,11 +45,11 @@
 	"lock": false,
 	"tasks": {
 		"jsr-check": {
-			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\" --dry-run --no-provenance",
+			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\" --dry-run --no-check --no-provenance",
 			"description": "Check for JSR."
 		},
 		"jsr-publish": {
-			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\"",
+			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\" --no-check",
 			"description": "Publish to JSR."
 		},
 		"jsr-var-manifest-relative": {

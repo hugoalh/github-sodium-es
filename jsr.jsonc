@@ -3,13 +3,10 @@
 	"name": "@hugoalh/github-sodium",
 	"version": "6.0.0",
 	"exports": {
-		"./basic": "./basic.ts",
-		"./extend": "./extend.ts",
 		".": "./mod.ts"
 	},
 	"imports": {
 		"https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.1/2b.ts": "jsr:@hugoalh/blake@^0.2.1/2b",
-		"https://raw.githubusercontent.com/hugoalh/is-json-es/v1.0.5/mod.ts": "jsr:@hugoalh/is-json@^1.0.5",
 		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.1/highlevel.ts": "jsr:@hugoalh/nacl@^0.1.1/highlevel",
 		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.1/lowlevel.ts": "jsr:@hugoalh/nacl@^0.1.1/lowlevel"
 	},
