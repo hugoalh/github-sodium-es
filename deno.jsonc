@@ -10,11 +10,12 @@
 	},
 	"imports": { // IMPORTANT: Only for development dependencies!
 		"DNT": "jsr:@hugoalh/deno-nodejs-transformer@^0.8.0",
+		"NPP": "https://raw.githubusercontent.com/hugoalh/npm-publish-patcher/caab384376582dd7563b255c740e8b322f82247e/deno/cli.ts",
 		"STD_JSONC": "jsr:@std/jsonc@^1.0.2"
 	},
 	"lint": {
 		"plugins": [
-			"jsr:@hugoalh/deno-lint-rules@^0.12.0/presets/library"
+			"jsr:@hugoalh/deno-lint-rules@^0.14.0/presets/library"
 		],
 		"rules": {
 			"tags": [
@@ -45,32 +46,24 @@
 	"lock": false,
 	"tasks": {
 		"jsr-check": {
-			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\" --dry-run --no-check --no-provenance",
+			"command": "deno task jsr-publish --dry-run --no-provenance",
 			"description": "Check for JSR."
 		},
 		"jsr-publish": {
-			"command": "deno publish --allow-dirty --config \"$(deno task jsr-var-manifest-relative)\" --no-check",
+			"command": "deno publish --allow-dirty --config \"jsr.jsonc\" --no-check",
 			"description": "Publish to JSR."
 		},
-		"jsr-var-manifest-relative": {
-			"command": "echo \"jsr.jsonc\"",
-			"description": "Variable of the JSR manifest file relative path."
-		},
-		"npm-build": {
-			"command": "deno run --allow-all --no-prompt --quiet .npm.build.ts",
+		"npm-npm-build": {
+			"command": "deno run --allow-all --no-prompt --quiet .npm-npm.build.ts",
 			"description": "Build for NPM."
 		},
-		"npm-check": {
-			"command": "deno task --cwd \"$(deno task npm-var-distribution-relative)\" --eval \"npm publish --dry-run\"",
+		"npm-npm-check": {
+			"command": "deno task npm-npm-publish --dry-run",
 			"description": "Check for NPM."
 		},
-		"npm-publish": {
-			"command": "deno task --cwd \"$(deno task npm-var-distribution-relative)\" --eval \"npm publish --tag recent\"",
+		"npm-npm-publish": {
+			"command": "deno run --allow-all --no-prompt --quiet NPP --cleanup --cwd \"dist/npm-npm\" --ignore-ppv",
 			"description": "Publish to NPM."
-		},
-		"npm-var-distribution-relative": {
-			"command": "echo \"dist/npm\"",
-			"description": "Variable of the NPM distribution directory relative path."
 		}
 	},
 	"unstable": [

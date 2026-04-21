@@ -2,9 +2,10 @@
 
 [**⚖️** MIT](./LICENSE.md)
 
-[![GitHub: hugoalh/github-sodium-es](https://img.shields.io/github/v/release/hugoalh/github-sodium-es?label=hugoalh/github-sodium-es&labelColor=181717&logo=github&logoColor=ffffff&sort=semver&style=flat "GitHub: hugoalh/github-sodium-es")](https://github.com/hugoalh/github-sodium-es)
-[![JSR: @hugoalh/github-sodium](https://img.shields.io/jsr/v/@hugoalh/github-sodium?label=@hugoalh/github-sodium&labelColor=F7DF1E&logo=jsr&logoColor=000000&style=flat "JSR: @hugoalh/github-sodium")](https://jsr.io/@hugoalh/github-sodium)
-[![NPM: @hugoalh/github-sodium](https://img.shields.io/npm/v/@hugoalh/github-sodium?label=@hugoalh/github-sodium&labelColor=CB3837&logo=npm&logoColor=ffffff&style=flat "NPM: @hugoalh/github-sodium")](https://www.npmjs.com/package/@hugoalh/github-sodium)
+🔗
+[GitHub](https://github.com/hugoalh/github-sodium-es)
+[JSR](https://jsr.io/@hugoalh/github-sodium)
+[NPM](https://www.npmjs.com/package/@hugoalh/github-sodium)
 
 An ECMAScript module to provide an easier and simplified method for encrypt GitHub secrets.
 
