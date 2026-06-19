@@ -208,7 +208,7 @@ jobs:
           }
           deno task npm-kaki87-publish --token $Env:CDV_NPM_KAKI87_TOKEN
       - name: "Publish To NPM"
-        if: "${{!cancelled() && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skipped') && env.CDV_NPM_PUBLISH == 'true'}}"
+        if: "${{!cancelled() && (steps.build-general.outcome == 'success' || steps.build-general.outcome == 'skipped') && env.CDV_NPM_NPM_PUBLISH == 'true'}}"
         shell: "pwsh"
         env:
           CDV_NPM_NPM_TOKEN: "${{secrets.NPM_NPM_TOKEN}}"

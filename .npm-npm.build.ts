@@ -1,6 +1,6 @@
 import { invokeDenoNodeJSTransformer } from "DNT";
 import { parse as parseJSONC } from "STD_JSONC";
-const jsrManifest = parseJSONC(await Deno.readTextFile("./jsr.jsonc"));
+const jsrManifest = parseJSONC(await Deno.readTextFile(new URL(import.meta.resolve("./jsr.jsonc"))));
 await invokeDenoNodeJSTransformer({
 	copyEntries: [
 		"LICENSE.md",

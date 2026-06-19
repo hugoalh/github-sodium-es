@@ -2,6 +2,7 @@
 	"$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
 	"name": "@hugoalh/github-sodium",
 	"version": "6.0.0",
+	"license": "MIT",
 	"exports": {
 		".": "./mod.ts"
 	},
