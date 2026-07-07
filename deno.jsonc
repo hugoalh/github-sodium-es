@@ -1,21 +1,41 @@
 {
 	"$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
 	"fmt": {
+		"angularNextControlFlowSameLine": true,
+		"bracePosition": "sameLine",
 		"indentWidth": 4,
-		"lineWidth": 800,
+		"json.trailingCommas": "never",
+		"jsx.bracketPosition": "nextLine",
+		"jsx.forceNewLinesSurroundingContent": false,
+		"jsx.multiLineParens": "never",
+		"lineWidth": 512,
+		"newLineKind": "auto",
+		"nextControlFlowPosition": "sameLine",
+		"operatorPosition": "maintain",
 		"proseWrap": "preserve",
+		"quoteProps": "asNeeded",
 		"semiColons": true,
+		"singleBodyPosition": "nextLine",
 		"singleQuote": false,
-		"useTabs": true
+		"sortNamedExports": "caseInsensitive",
+		"sortNamedImports": "caseInsensitive",
+		"spaceAround": false,
+		"spaceSurroundingProperties": true,
+		"trailingCommas": "never",
+		"typeLiteral.separatorKind": "semiColon",
+		"useBraces": "always",
+		"useEditorConfig": true,
+		"useTabs": true,
+		"vueComponentCase": "ignore"
 	},
 	"imports": { // IMPORTANT: Only for development dependencies!
 		"DNT": "jsr:@hugoalh/deno-nodejs-transformer@^0.8.0",
-		"NPP": "https://raw.githubusercontent.com/hugoalh/npm-publish-patcher/fbd82394a858cbbb5d641a7ebdf1b997ed34f30c/deno/cli.ts",
+		"NPP": "https://raw.githubusercontent.com/hugoalh/npm-publish-patcher/403fcd8af8b39f9777704ec6c29b16f06947b0b7/deno/cli.ts",
 		"STD_JSONC": "jsr:@std/jsonc@^1.0.2"
 	},
 	"lint": {
 		"plugins": [
-			"jsr:@hugoalh/deno-lint-rules@^0.14.1/presets/library"
+			"jsr:@hugoalh/deno-lint-rules@^0.18.2/presets/library"
 		],
 		"rules": {
 			"tags": [
@@ -45,7 +65,11 @@
 	},
 	"lock": false,
 	"minimumDependencyAge": {
-		"age": "P1D"
+		"age": "P1D",
+		"exclude": [
+			"jsr:@hugoalh/*",
+			"npm:@hugoalh/*"
+		]
 	},
 	"tasks": {
 		"jsr-check": {
