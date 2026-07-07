@@ -80,6 +80,30 @@
 			"command": "deno publish --allow-dirty --config \"jsr.jsonc\" --no-check",
 			"description": "Publish to JSR."
 		},
+		"npm-codeberg-build": {
+			"command": "deno run --allow-all --no-prompt --quiet .npm-codeberg.build.ts",
+			"description": "Build for Codeberg NPM."
+		},
+		"npm-codeberg-check": {
+			"command": "deno task npm-codeberg-publish --dry-run",
+			"description": "Check for Codeberg NPM."
+		},
+		"npm-codeberg-publish": {
+			"command": "deno run --allow-all --no-prompt --quiet NPP --workspace \"dist/npm-codeberg\" --provenance false --registry \"codeberg.org/api/packages/hugoalh/npm\"",
+			"description": "Publish to Codeberg NPM."
+		},
+		"npm-github-build": {
+			"command": "deno run --allow-all --no-prompt --quiet .npm-github.build.ts",
+			"description": "Build for GitHub NPM."
+		},
+		"npm-github-check": {
+			"command": "deno task npm-github-publish --dry-run",
+			"description": "Check for GitHub NPM."
+		},
+		"npm-github-publish": {
+			"command": "deno run --allow-all --no-prompt --quiet NPP --workspace \"dist/npm-github\" --provenance false --registry \"npm.pkg.github.com\"",
+			"description": "Publish to GitHub NPM."
+		},
 		"npm-npm-build": {
 			"command": "deno run --allow-all --no-prompt --quiet .npm-npm.build.ts",
 			"description": "Build for NPM."

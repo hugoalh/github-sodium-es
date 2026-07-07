@@ -30,21 +30,21 @@ await invokeDenoNodeJSTransformer({
 			"github",
 			"sodium"
 		],
-		homepage: "https://github.com/hugoalh/github-sodium-es#readme",
+		homepage: "https://codeberg.org/hugoalh/github-sodium-es#readme",
 		bugs: {
-			url: "https://github.com/hugoalh/github-sodium-es/issues"
+			url: "https://codeberg.org/hugoalh/github-sodium-es/issues"
 		},
 		license: "MIT",
 		author: "hugoalh",
 		repository: {
 			type: "git",
-			url: "git+https://github.com/hugoalh/github-sodium-es.git"
+			url: "git+https://codeberg.org/hugoalh/github-sodium-es.git"
 		},
 		private: false,
 		publishConfig: {
 			access: "public"
 		}
 	},
-	outputDirectory: "dist/npm-npm",
+	outputDirectory: "dist/npm-codeberg",
 	outputDirectoryPreEmpty: true
 });

@@ -7,9 +7,8 @@
 		".": "./mod.ts"
 	},
 	"imports": {
-		"https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.1/2b.ts": "jsr:@hugoalh/blake@^0.2.1/2b",
-		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.1/highlevel.ts": "jsr:@hugoalh/nacl@^0.1.1/highlevel",
-		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.1/lowlevel.ts": "jsr:@hugoalh/nacl@^0.1.1/lowlevel"
+		"https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.2/2b.ts": "jsr:@hugoalh/blake@^0.2.2/2b",
+		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.2.0/mod.ts": "jsr:@hugoalh/nacl@^0.2.0"
 	},
 	"publish": {
 		"exclude": [

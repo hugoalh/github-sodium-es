@@ -3,7 +3,8 @@
 [**⚖️** MIT](./LICENSE.md)
 
 🔗
-[GitHub](https://github.com/hugoalh/github-sodium-es)
+[DistBoard @hugoalh](https://hugoalh.github.io/distboard/github_sodium_ecmascript)
+● [GitHub](https://github.com/hugoalh/github-sodium-es)
 ● [JSR](https://jsr.io/@hugoalh/github-sodium)
 ● [NPM](https://www.npmjs.com/package/@hugoalh/github-sodium)
 

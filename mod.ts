@@ -1,13 +1,20 @@
-import { Buffer } from "node:buffer";
-import { Blake2B } from "https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.1/2b.ts";
+import { Blake2B } from "https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.2/2b.ts";
 import {
 	box,
 	boxKeyPair,
 	boxNonceLength,
 	boxOverheadLength,
-	boxPublicKeyLength
-} from "https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.1/highlevel.ts";
-import type { KeyPair } from "https://raw.githubusercontent.com/hugoalh/nacl-es/v0.1.1/lowlevel.ts";
+	boxPublicKeyLength,
+	type KeyPair
+} from "https://raw.githubusercontent.com/hugoalh/nacl-es/v0.2.0/mod.ts";
+if (typeof Uint8Array.fromBase64 === "undefined") {
+	//deno-lint-ignore hugoalh/no-import-dynamic -- Polyfill.
+	await import("npm:es-arraybuffer-base64@^1.1.2/Uint8Array.fromBase64/auto");
+}
+if (typeof Uint8Array.prototype.toBase64 === "undefined") {
+	//deno-lint-ignore hugoalh/no-import-dynamic -- Polyfill.
+	await import("npm:es-arraybuffer-base64@^1.1.2/Uint8Array.prototype.toBase64/auto");
+}
 const sodiumOverheadLength: number = boxOverheadLength + boxPublicKeyLength;
 /**
  * GitHub sodium sealer for encrypt value to the GitHub secret value.
@@ -25,7 +32,7 @@ export class GitHubSodiumSealer {
 		if (!(publicKey.length > 0)) {
 			throw new SyntaxError(`Parameter \`publicKey\` is not a string which is non empty!`);
 		}
-		this.#publicKey = Uint8Array.from(Buffer.from(publicKey, "base64"));
+		this.#publicKey = Uint8Array.fromBase64(publicKey);
 	}
 	/**
 	 * Get the 24 bytes nonce, which is a Blake2B digest from the ephemeral public key and the recipient's public key.
@@ -50,16 +57,7 @@ export class GitHubSodiumSealer {
 		const nonce: Uint8Array = this.#getNonce(ekp.publicKey);
 		const cipherText: Uint8Array = box(new TextEncoder().encode(value), nonce, this.#publicKey, ekp.secretKey);
 		result.set(cipherText, boxPublicKeyLength);
-		return Buffer.from(result).toString("base64");
+		return result.toBase64();
 	}
 }
 export default GitHubSodiumSealer;
-/**
- * Encrypt value to the GitHub secret value.
- * @param {string} publicKey Public key, which get from the GitHub organization or repository, need for encrypt value to the GitHub secret value before create or update the GitHub secret.
- * @param {string} value Value that need to encrypt as the GitHub secret value.
- * @returns {string} An encrypted GitHub secret value.
- */
-export function seal(publicKey: string, value: string): string {
-	return new GitHubSodiumSealer(publicKey).encrypt(value);
-}
