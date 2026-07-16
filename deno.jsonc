@@ -30,7 +30,7 @@
 	},
 	"imports": { // IMPORTANT: Only for development dependencies!
 		"DNT": "jsr:@hugoalh/deno-nodejs-transformer@^0.8.0",
-		"NPP": "https://raw.githubusercontent.com/hugoalh/npm-publish-patcher/403fcd8af8b39f9777704ec6c29b16f06947b0b7/deno/cli.ts",
+		"NPP": "https://raw.githubusercontent.com/hugoalh/npm-publish-patcher/85ec5b7b553dedb3d6eeb3666b8a9fe40055963f/deno/cli.ts",
 		"STD_JSONC": "jsr:@std/jsonc@^1.0.2"
 	},
 	"lint": {
@@ -82,39 +82,39 @@
 		},
 		"npm-codeberg-build": {
 			"command": "deno run --allow-all --no-prompt --quiet .npm-codeberg.build.ts",
-			"description": "Build for Codeberg NPM."
+			"description": "Build for NPM Codeberg."
 		},
 		"npm-codeberg-check": {
 			"command": "deno task npm-codeberg-publish --dry-run",
-			"description": "Check for Codeberg NPM."
+			"description": "Check for NPM Codeberg."
 		},
 		"npm-codeberg-publish": {
-			"command": "deno run --allow-all --no-prompt --quiet NPP --workspace \"dist/npm-codeberg\" --provenance false --registry \"codeberg.org/api/packages/hugoalh/npm\"",
-			"description": "Publish to Codeberg NPM."
+			"command": "deno run --allow-all --no-prompt --quiet NPP --workspace \"dist/npm-codeberg\" --registry \"codeberg.org/api/packages/hugoalh/npm\"",
+			"description": "Publish to NPM Codeberg."
 		},
 		"npm-github-build": {
 			"command": "deno run --allow-all --no-prompt --quiet .npm-github.build.ts",
-			"description": "Build for GitHub NPM."
+			"description": "Build for NPM GitHub."
 		},
 		"npm-github-check": {
 			"command": "deno task npm-github-publish --dry-run",
-			"description": "Check for GitHub NPM."
+			"description": "Check for NPM GitHub."
 		},
 		"npm-github-publish": {
-			"command": "deno run --allow-all --no-prompt --quiet NPP --workspace \"dist/npm-github\" --provenance false --registry \"npm.pkg.github.com\"",
-			"description": "Publish to GitHub NPM."
+			"command": "deno run --allow-all --no-prompt --quiet NPP --workspace \"dist/npm-github\" --registry \"npm.pkg.github.com\"",
+			"description": "Publish to NPM GitHub."
 		},
 		"npm-npm-build": {
 			"command": "deno run --allow-all --no-prompt --quiet .npm-npm.build.ts",
-			"description": "Build for NPM."
+			"description": "Build for NPM NPM."
 		},
 		"npm-npm-check": {
 			"command": "deno task npm-npm-publish --dry-run",
-			"description": "Check for NPM."
+			"description": "Check for NPM NPM."
 		},
 		"npm-npm-publish": {
 			"command": "deno run --allow-all --no-prompt --quiet NPP --workspace \"dist/npm-npm\"",
-			"description": "Publish to NPM."
+			"description": "Publish to NPM NPM."
 		}
 	},
 	"unstable": [

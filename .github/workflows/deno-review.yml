@@ -35,11 +35,11 @@ jobs:
       - name: "Setup Deno"
         uses: "denoland/setup-deno@v2"
         with:
-          deno-version: "^2.7.12"
+          deno-version: "^2.9.2"
       - name: "Setup NodeJS"
-        uses: "actions/setup-node@v6"
+        uses: "actions/setup-node@v7"
         with:
-          node-version: "^24.15.0"
+          node-version: "^24.18.0"
           check-latest: true
       - name: "Get Cache Path"
         shell: "pwsh"
@@ -76,98 +76,61 @@ jobs:
           path: "${{env.CDV_NPM_CACHE_PATH_ROOT}}"
       - name: "Setup NPM Environment"
         run: |-
+          npm --global config set allow-git none
+          npm --global config set allow-remote none
           npm --global config set git-tag-version false
           npm --global config set logs-max 0
-      - name: "Analyze Repository"
-        id: "analyze"
+          npm --global config set min-release-age 1
+          npm --global config set unicode true
+          npm --global config set update-notifier=false
+      - name: "Analyze Routes"
+        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         shell: "pwsh"
         run: |-
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $True
           [PSCustomObject]$Config = ConvertFrom-Json -InputObject (Get-Content -LiteralPath '.\deno.jsonc' -Raw -Encoding 'UTF8NoBOM') -Depth 100
-          [Boolean]$Build = $Null -ine $Config.tasks.build
-          [Boolean]$JSRBuild = $Null -ine $Config.tasks.'jsr-build'
-          [Boolean]$JSRCheck = $Null -ine $Config.tasks.'jsr-check'
-          [Boolean]$JSRPublish = $Null -ine $Config.tasks.'jsr-publish'
-          [Boolean]$NPMCodebergBuild = $Null -ine $Config.tasks.'npm-codeberg-build'
-          [Boolean]$NPMCodebergCheck = $Null -ine $Config.tasks.'npm-codeberg-check'
-          [Boolean]$NPMCodebergPublish = $Null -ine $Config.tasks.'npm-codeberg-publish'
-          [Boolean]$NPMGitHubBuild = $Null -ine $Config.tasks.'npm-github-build'
-          [Boolean]$NPMGitHubCheck = $Null -ine $Config.tasks.'npm-github-check'
-          [Boolean]$NPMGitHubPublish = $Null -ine $Config.tasks.'npm-github-publish'
-          [Boolean]$NPMKaKi87Build = $Null -ine $Config.tasks.'npm-kaki87-build'
-          [Boolean]$NPMKaKi87Check = $Null -ine $Config.tasks.'npm-kaki87-check'
-          [Boolean]$NPMKaKi87Publish = $Null -ine $Config.tasks.'npm-kaki87-publish'
-          [Boolean]$NPMNPMBuild = $Null -ine $Config.tasks.'npm-npm-build'
-          [Boolean]$NPMNPMCheck = $Null -ine $Config.tasks.'npm-npm-check'
-          [Boolean]$NPMNPMPublish = $Null -ine $Config.tasks.'npm-npm-publish'
-          If ($Env:CDV_RUN_LITE -ieq 'false') {
-            Add-Content -LiteralPath $Env:GITHUB_STEP_SUMMARY -Value @"
-          # Dispatch
+          Add-Content -LiteralPath $Env:GITHUB_STEP_SUMMARY -Value @"
+          # Routes
 
-          - **Build:** $($Build ? '✔️' : '❌')
-          - **JSR:**
-            - **Build:** $($JSRBuild ? '✔️' : '❌')
-            - **Check:** $($JSRCheck ? '✔️' : '❌')
-            - **Publish:** $($JSRPublish ? '✔️' : '❌')
-          - **NPM - Codeberg:**
-            - **Build:** $($NPMCodebergBuild ? '✔️' : '❌')
-            - **Check:** $($NPMCodebergCheck ? '✔️' : '❌')
-            - **Publish:** $($NPMCodebergPublish ? '✔️' : '❌')
-          - **NPM - GitHub:**
-            - **Build:** $($NPMGitHubBuild ? '✔️' : '❌')
-            - **Check:** $($NPMGitHubCheck ? '✔️' : '❌')
-            - **Publish:** $($NPMGitHubPublish ? '✔️' : '❌')
-          - **NPM - KaKi87:**
-            - **Build:** $($NPMKaKi87Build ? '✔️' : '❌')
-            - **Check:** $($NPMKaKi87Check ? '✔️' : '❌')
-            - **Publish:** $($NPMKaKi87Publish ? '✔️' : '❌')
-          - **NPM - NPM:**
-            - **Build:** $($NPMNPMBuild ? '✔️' : '❌')
-            - **Check:** $($NPMNPMCheck ? '✔️' : '❌')
-            - **Publish:** $($NPMNPMPublish ? '✔️' : '❌')
+          | **Name** | **Build** | **Check** | **Publish** |
+          |:--|:-:|:-:|:-:|
+          | (General) | $(($Null -ine $Config.tasks.'build') ? '✔️' : '❌') |  |  |
+          | JSR | $(($Null -ine $Config.tasks.'jsr-build') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'jsr-check') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'jsr-publish') ? '✔️' : '❌') |
+          | NPM Codeberg | $(($Null -ine $Config.tasks.'npm-codeberg-build') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-codeberg-check') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-codeberg-publish') ? '✔️' : '❌') |
+          | NPM GitHub | $(($Null -ine $Config.tasks.'npm-github-build') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-github-check') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-github-publish') ? '✔️' : '❌') |
+          | NPM KaKi87 | $(($Null -ine $Config.tasks.'npm-kaki87-build') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-kaki87-check') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-kaki87-publish') ? '✔️' : '❌') |
+          | NPM NPM | $(($Null -ine $Config.tasks.'npm-npm-build') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-npm-check') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-npm-publish') ? '✔️' : '❌') |
           "@
-          }
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_BUILD=$($Build.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_JSR_BUILD=$($JSRBuild.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_JSR_CHECK=$($JSRCheck.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_CODEBERG_BUILD=$($NPMCodebergBuild.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_CODEBERG_CHECK=$($NPMCodebergCheck.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_GITHUB_BUILD=$($NPMGitHubBuild.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_GITHUB_CHECK=$($NPMGitHubCheck.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_KAKI87_BUILD=$($NPMKaKi87Build.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_KAKI87_CHECK=$($NPMKaKi87Check.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_NPM_BUILD=$($NPMNPMBuild.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_NPM_NPM_CHECK=$($NPMNPMCheck.ToString().ToLower())"
       - name: "Check Dependencies Update"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
+        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         run: |-
           deno outdated
       - name: "Check For Remote"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
+        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         shell: "pwsh"
         run: |-
           $ErrorActionPreference = 'Stop'
           $PSNativeCommandUseErrorActionPreference = $True
           Get-ChildItem -LiteralPath '.\' -File -Recurse -Name
       - name: "Check Code"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
+        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         run: |-
           deno check
       - name: "Lint Code"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false'}}"
+        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         run: |-
           deno lint --permit-no-files
       - name: "Build Repository"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_BUILD == 'true'}}"
+        if: "${{!cancelled()}}"
         run: |-
-          deno task build
+          deno task --if-present build
       - name: "Test Code"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
+        if: "${{!cancelled()}}"
         run: |-
-          deno test --allow-all --coverage --coverage-raw-data-only --no-prompt --permit-no-files --trace-leaks
+          deno test --allow-all --coverage --coverage-raw-data-only --no-check=all --no-prompt --permit-no-files --sanitize-ops --sanitize-resources --trace-leaks
       - name: "Test Code Coverage"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
+        if: "${{!cancelled()}}"
         shell: "pwsh"
         run: |-
           $ErrorActionPreference = 'Stop'
@@ -176,49 +139,34 @@ jobs:
             deno coverage
           }
       - name: "Benchmark Code"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success'}}"
+        if: "${{!cancelled()}}"
         run: |-
           deno bench --allow-all --no-prompt --permit-no-files
-      - name: "Build For JSR"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && env.CDV_JSR_BUILD == 'true'}}"
-        run: |-
-          deno task jsr-build
       - name: "Check For JSR"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && env.CDV_JSR_CHECK == 'true'}}"
+        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         run: |-
-          deno task jsr-check
-      - name: "Build For Codeberg NPM"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && env.CDV_NPM_CODEBERG_BUILD == 'true'}}"
+          deno task --if-present jsr-build
+          deno task --if-present jsr-check
+      - name: "Check For NPM Codeberg"
+        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         run: |-
-          deno task npm-codeberg-build
-      - name: "Check For Codeberg NPM"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && env.CDV_NPM_CODEBERG_CHECK == 'true'}}"
+          deno task --if-present npm-codeberg-build
+          deno task --if-present npm-codeberg-check
+      - name: "Check For NPM GitHub"
+        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         run: |-
-          deno task npm-codeberg-check
-      - name: "Build For GitHub NPM"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && env.CDV_NPM_GITHUB_BUILD == 'true'}}"
+          deno task --if-present npm-github-build
+          deno task --if-present npm-github-check
+      - name: "Check For NPM KaKi87"
+        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         run: |-
-          deno task npm-github-build
-      - name: "Check For GitHub NPM"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && env.CDV_NPM_GITHUB_CHECK == 'true'}}"
+          deno task --if-present npm-kaki87-build
+          deno task --if-present npm-kaki87-check
+      - name: "Check For NPM NPM"
+        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         run: |-
-          deno task npm-github-check
-      - name: "Build For KaKi87 NPM"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && env.CDV_NPM_KAKI87_BUILD == 'true'}}"
-        run: |-
-          deno task npm-kaki87-build
-      - name: "Check For KaKi87 NPM"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && env.CDV_NPM_KAKI87_CHECK == 'true'}}"
-        run: |-
-          deno task npm-kaki87-check
-      - name: "Build For NPM"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && env.CDV_NPM_NPM_BUILD == 'true'}}"
-        run: |-
-          deno task npm-npm-build
-      - name: "Check For NPM"
-        if: "${{!cancelled() && steps.analyze.outcome == 'success' && env.CDV_RUN_LITE == 'false' && env.CDV_NPM_NPM_CHECK == 'true'}}"
-        run: |-
-          deno task npm-npm-check
+          deno task --if-present npm-npm-build
+          deno task --if-present npm-npm-check
       - name: "Save Deno Cache"
         if: "${{!cancelled()}}"
         uses: "actions/cache/save@v6"
