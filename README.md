@@ -39,7 +39,9 @@ This does not request any runtime permission.
 
 | **Name** | **Path** | **Description** |
 |:--|:--|:--|
-| `.` | `./mod.ts` | Default. |
+| `.` | `./mod.ts` | Default (LibSodium). |
+| `./libsodium` | `./libsodium.ts` | LibSodium. |
+| `./tweetsodium` | `./tweetsodium.ts` | TweetSodium. |
 
 > [!NOTE]
 > - Different runtimes have vary support for the sources and entrypoints, visit the runtime documentation for more information.

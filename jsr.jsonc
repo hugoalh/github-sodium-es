@@ -4,11 +4,13 @@
 	"version": "6.0.0",
 	"license": "MIT",
 	"exports": {
-		".": "./mod.ts"
+		".": "./mod.ts",
+		"./libsodium": "./libsodium.ts",
+		"./tweetsodium": "./tweetsodium.ts"
 	},
 	"imports": {
 		"https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.2/2b.ts": "jsr:@hugoalh/blake@^0.2.2/2b",
-		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.2.0/mod.ts": "jsr:@hugoalh/nacl@^0.2.0"
+		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.2.1/mod.ts": "jsr:@hugoalh/nacl@^0.2.1"
 	},
 	"publish": {
 		"exclude": [
