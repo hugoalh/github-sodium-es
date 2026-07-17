@@ -16,9 +16,15 @@ jobs:
       - name: "Get"
         shell: "pwsh"
         env:
-          TEST_VALUE_FROM: "${{secrets.TEST_VALUE}}"
+          TEST_VALUE_LIBSODIUM: "${{secrets.TEST_LIBSODIUM_VALUE}}"
           TEST_VALUE_ORIGINAL: "${{inputs.value}}"
+          TEST_VALUE_TWEETSODIUM: "${{secrets.TEST_TWEETSODIUM_VALUE}}"
         run: |-
-          If ($Env:TEST_VALUE_FROM -cne $Env:TEST_VALUE_ORIGINAL) {
-            Exit 1
-          }
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
+          Add-Content -LiteralPath $Env:GITHUB_STEP_SUMMARY -Value @"
+          | **Name** | **Result** |
+          |:--|:-:|
+          | LibSodium | $(($Env:TEST_VALUE_LIBSODIUM -ceq $Env:TEST_VALUE_ORIGINAL) ? '✔️' : '❌') |
+          | TweetSodium | $(($Env:TEST_VALUE_TWEETSODIUM -ceq $Env:TEST_VALUE_ORIGINAL) ? '✔️' : '❌') |
+          "@

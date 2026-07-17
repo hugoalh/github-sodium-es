@@ -18,29 +18,43 @@ jobs:
       - name: "Setup Deno"
         uses: "denoland/setup-deno@v2"
         with:
-          deno-version: "^2.4.5"
+          deno-version: "^2.9.2"
       - name: "Set"
-        id: "set"
         shell: "pwsh"
         env:
           TEST_GHPAT: "${{secrets.TEST_GHPAT}}"
           TEST_VALUE: "${{inputs.value}}"
         run: |-
-          [PSCustomObject]$PublicKey = Invoke-RestMethod -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/secrets/public-key" -Headers @{
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
+          [PSCustomObject]$RepositoryPublicKey = Invoke-RestMethod -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/secrets/public-key" -Headers @{
             Accept = 'application/vnd.github+json';
             Authorization = "Bearer $($Env:TEST_GHPAT)";
             'X-GitHub-Api-Version' = '2022-11-28';
           } -Method 'Get'
-          [String]$ValueEncrypted = (
-            deno eval "import { GitHubSodiumSealer } from `"./basic.ts`"; console.log(new GitHubSodiumSealer(`"$($PublicKey.key)`").encrypt(`"$($Env:TEST_VALUE)`"));" |
+          [String]$LibSodiumValueEncrypted = (
+            deno run './libsodium/cli.ts' $RepositoryPublicKey.key $Env:TEST_VALUE |
               Join-String -Separator "`n"
           ).Trim()
-          Invoke-WebRequest -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/secrets/TEST_VALUE" -Headers @{
+          Invoke-WebRequest -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/secrets/TEST_LIBSODIUM_VALUE" -Headers @{
             Accept = 'application/vnd.github+json';
             Authorization = "Bearer $($Env:TEST_GHPAT)";
             'Content-Type' = 'application/json';
             'X-GitHub-Api-Version' = '2022-11-28';
           } -Method 'Put' -Body (ConvertTo-Json -InputObject @{
-            encrypted_value = $ValueEncrypted;
-            key_id = $PublicKey.key_id;
+            encrypted_value = $LibSodiumValueEncrypted;
+            key_id = $RepositoryPublicKey.key_id;
+          } -Depth 100 -Compress)
+          [String]$TweetSodiumValueEncrypted = (
+            deno run './tweetsodium/cli.ts' $RepositoryPublicKey.key $Env:TEST_VALUE |
+              Join-String -Separator "`n"
+          ).Trim()
+          Invoke-WebRequest -Uri "https://api.github.com/repos/$($Env:GITHUB_REPOSITORY)/actions/secrets/TEST_TWEETSODIUM_VALUE" -Headers @{
+            Accept = 'application/vnd.github+json';
+            Authorization = "Bearer $($Env:TEST_GHPAT)";
+            'Content-Type' = 'application/json';
+            'X-GitHub-Api-Version' = '2022-11-28';
+          } -Method 'Put' -Body (ConvertTo-Json -InputObject @{
+            encrypted_value = $TweetSodiumValueEncrypted;
+            key_id = $RepositoryPublicKey.key_id;
           } -Depth 100 -Compress)
