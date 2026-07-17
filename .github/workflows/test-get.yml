@@ -8,12 +8,12 @@ on:
         description: "Value."
         required: true
 jobs:
-  get:
+  main:
     permissions:
       contents: "read"
     runs-on: "ubuntu-latest"
     steps:
-      - name: "Get"
+      - name: "Get Secret"
         shell: "pwsh"
         env:
           TEST_VALUE_LIBSODIUM: "${{secrets.TEST_LIBSODIUM_VALUE}}"
