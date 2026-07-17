@@ -10,6 +10,12 @@
 
 An ECMAScript module to provide an easier and simplified method for encrypt GitHub secrets.
 
+## 🌟 Features
+
+- Support multiple implementations:
+  - **LibSodium:** Default; Recommended by GitHub; Bad compatibility with bundler or compiler.
+  - **TweetSodium:** Originally created by GitHub but deprecated and unmaintained ([Repository](https://github.com/github/tweetsodium)), currently maintain here; Good compatibility with bundler or compiler.
+
 ## 🎯 Runtime Targets
 
 Any runtime which support ECMAScript should able to use this; These runtimes are officially supported:
