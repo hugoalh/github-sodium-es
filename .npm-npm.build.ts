@@ -6,6 +6,11 @@ await invokeDenoNodeJSTransformer({
 		"LICENSE.md",
 		"README.md"
 	],
+	entrypointsExecutable: {
+		"ghs": "./libsodium/cli.ts",
+		"ghs-ls": "./libsodium/cli.ts",
+		"ghs-ts": "./tweetsodium/cli.ts"
+	},
 	//@ts-ignore Lazy type.
 	entrypointsScript: jsrManifest.exports,
 	generateDeclarationMap: true,

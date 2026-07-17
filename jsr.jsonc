@@ -4,9 +4,12 @@
 	"version": "6.0.0",
 	"license": "MIT",
 	"exports": {
-		".": "./mod.ts",
+		".": "./libsodium.ts",
+		"./cli": "./libsodium/cli.ts",
 		"./libsodium": "./libsodium.ts",
-		"./tweetsodium": "./tweetsodium.ts"
+		"./libsodium/cli": "./libsodium/cli.ts",
+		"./tweetsodium": "./tweetsodium.ts",
+		"./tweetsodium/cli": "./tweetsodium/cli.ts"
 	},
 	"imports": {
 		"https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.2/2b.ts": "jsr:@hugoalh/blake@^0.2.2/2b",

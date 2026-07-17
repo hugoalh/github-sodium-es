@@ -41,7 +41,9 @@ This does not request any runtime permission.
 |:--|:--|:--|
 | `.` | `./mod.ts` | Default (LibSodium). |
 | `./libsodium` | `./libsodium.ts` | LibSodium. |
+| `./libsodium/cli` | `./libsodium/cli.ts` | CLI for LibSodium. |
 | `./tweetsodium` | `./tweetsodium.ts` | TweetSodium. |
+| `./tweetsodium/cli` | `./tweetsodium/cli.ts` | CLI for TweetSodium. |
 
 > [!NOTE]
 > - Different runtimes have vary support for the sources and entrypoints, visit the runtime documentation for more information.
@@ -65,8 +67,17 @@ This does not request any runtime permission.
 >   - [Deno CLI `deno doc`](https://docs.deno.com/runtime/reference/cli/doc/)
 >   - [JSR](https://jsr.io/@hugoalh/github-sodium)
 
+## 🧩 CLIs
+
+```powershell
+ghs {PublicKey} {SecretValue}
+```
+
 ## ✍️ Examples
 
 - ```ts
   new GitHubSodiumSealer("2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234").encrypt("plain-text-secret");
+  ```
+- ```powershell
+  ghs '2Sg8iYjAxxmI2LvUXpJjkYrMxURPc8r+dB7TJyvv1234' 'plain-text-secret'
   ```
