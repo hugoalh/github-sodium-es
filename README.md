@@ -76,9 +76,15 @@ This does not request any runtime permission.
 
 ## 🧩 CLIs
 
-```powershell
-ghs {PublicKey} {SecretValue}
-```
+- ```powershell
+  ghs $PublicKey $SecretValue
+  ```
+- ```powershell
+  ghs-ls $PublicKey $SecretValue
+  ```
+- ```powershell
+  ghs-ts $PublicKey $SecretValue
+  ```
 
 ## ✍️ Examples
 
