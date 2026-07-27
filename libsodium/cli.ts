@@ -4,7 +4,7 @@ if (!import.meta.main) {
 }
 const args: readonly string[] = Deno.args;
 if (args.length !== 2) {
-	throw new Error(`Invalid arguments length; Expect: 2, Current: ${args.length}.`);
+	throw new Error(`Invalid arguments length! Expect: 2, Current: ${args.length}.`);
 }
 const [
 	publicKey,
