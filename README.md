@@ -71,7 +71,7 @@ This does not request any runtime permission.
 
 > [!NOTE]
 > - For the full or prettier documentation, can visit via:
->   - [Deno CLI `deno doc`](https://docs.deno.com/runtime/reference/cli/doc/)
+>   - [Deno CLI `deno doc`](https://docs.deno.com/runtime/reference/cli/doc)
 >   - [JSR](https://jsr.io/@hugoalh/github-sodium)
 
 ## 🧩 CLIs
