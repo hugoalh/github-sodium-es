@@ -4,4 +4,4 @@ This Contributing Guide is depend on the "[HUGOALH Universal Contributing Guide]
 
 ## Revises
 
-*This project does not have any revise.*
+This project does not have any revise.
