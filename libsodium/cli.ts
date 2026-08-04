@@ -19,7 +19,7 @@ addEventListener("unhandledrejection", (event: PromiseRejectionEvent): void => {
 	} else {
 		message = String(event.reason);
 	}
-	console.error(`${styleText(["red"], "ERR", { validateStream: false })}\t${message}`);
+	console.error(`${styleText(["red"], "ERROR", { validateStream: false })}\t${message}`);
 	exit(1);
 }, { capture: true });
 const { positionals } = parseArgs({ allowPositionals: true });
