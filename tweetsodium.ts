@@ -1,4 +1,4 @@
-import { Blake2B } from "https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.2/2b.ts";
+import { Blake2B } from "jsr:@hugoalh/blake@^0.2.2/2b";
 import {
 	box,
 	boxKeyPair,
@@ -6,7 +6,7 @@ import {
 	boxOverheadLength,
 	boxPublicKeyLength,
 	type KeyPair
-} from "https://raw.githubusercontent.com/hugoalh/nacl-es/v0.2.1/mod.ts";
+} from "jsr:@hugoalh/nacl@^0.2.1";
 import "./_polyfill.ts";
 const sodiumOverheadLength: number = boxOverheadLength + boxPublicKeyLength;
 /**

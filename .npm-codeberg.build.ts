@@ -17,12 +17,12 @@ await transform({
 	entrypointsScript: manifest.exports,
 	generateDeclarationMap: true,
 	mappings: {
-		"https://raw.githubusercontent.com/hugoalh/blake-es/v0.2.2/2b.ts": {
+		"jsr:@hugoalh/blake@^0.2.2/2b": {
 			name: "@hugoalh/blake",
 			version: "^0.2.2",
 			subPath: "2b"
 		},
-		"https://raw.githubusercontent.com/hugoalh/nacl-es/v0.2.1/mod.ts": {
+		"jsr:@hugoalh/nacl@^0.2.1": {
 			name: "@hugoalh/nacl",
 			version: "^0.2.1"
 		}
