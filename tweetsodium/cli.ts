@@ -1,4 +1,3 @@
-#!/usr/bin/env -S deno run
 import { exit } from "node:process";
 import {
 	parseArgs,
