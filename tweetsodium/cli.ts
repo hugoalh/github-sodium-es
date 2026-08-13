@@ -25,8 +25,4 @@ const { positionals } = parseArgs({ allowPositionals: true });
 if (positionals.length !== 2) {
 	throw new Error(`Invalid arguments length! Expect: 2, Current: ${positionals.length}.`);
 }
-const [
-	publicKey,
-	secretValue
-]: readonly string[] = positionals;
-console.log(new GitHubSodiumSealer(publicKey).encrypt(secretValue));
+console.log(new GitHubSodiumSealer(positionals[0]).encrypt(positionals[1]));

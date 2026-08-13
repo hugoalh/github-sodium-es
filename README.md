@@ -30,14 +30,14 @@ This does not request any runtime permission.
 
 ## #️⃣ Entrypoints
 
-| **Name** | **Path** | **Description** |
-|:--|:--|:--|
-| `.` | `./mod.ts` | Default (LibSodium). |
-| `./cli` | N/A | CLI for default (LibSodium). |
-| `./libsodium` | `./libsodium.ts` | LibSodium. |
-| `./libsodium/cli` | `./libsodium/cli.ts` | CLI for LibSodium. |
-| `./tweetsodium` | `./tweetsodium.ts` | TweetSodium. |
-| `./tweetsodium/cli` | `./tweetsodium/cli.ts` | CLI for TweetSodium. |
+| **Type** | **Name** | **Path** | **Description** |
+|:--|:--|:--|:--|
+| API | `.` | `./mod.ts` | Default (LibSodium). |
+| API | `./libsodium` | `./libsodium.ts` | LibSodium. |
+| API | `./tweetsodium` | `./tweetsodium.ts` | TweetSodium. |
+| CLI | `./cli` | N/A | Default (LibSodium). |
+| CLI | `./libsodium/cli` | `./libsodium/cli.ts` | LibSodium. |
+| CLI | `./tweetsodium/cli` | `./tweetsodium/cli.ts` | TweetSodium. |
 
 > [!NOTE]
 > - Different runtimes have vary support for the entrypoints, visit the runtime documentation for more information.
