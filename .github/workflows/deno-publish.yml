@@ -158,11 +158,13 @@ jobs:
           deno task jsr-publish
       - name: "Publish To NPM Codeberg"
         if: "${{!cancelled() && steps.build-general.outcome == 'success' && env.CDV_DEPLOY_NPM_CODEBERG == 'true'}}"
-        env:
-          CDV_NPM_CODEBERG_TOKEN: "${{secrets.NPM_CODEBERG_TOKEN}}"
+        shell: "pwsh"
         run: |-
+          $ErrorActionPreference = 'Stop'
+          $PSNativeCommandUseErrorActionPreference = $True
           deno task --if-present npm-codeberg-build
-          deno task npm-codeberg-publish --token '^CDV_NPM_CODEBERG_TOKEN'
+          $JWT = Invoke-RestMethod -Uri "$($Env:ACTIONS_ID_TOKEN_REQUEST_URL)&audience=u:197292:72bee2b2-c311-47ee-9df1-0f2a8a3aa74a" -Headers @{ Authorization = "Bearer $($Env:ACTIONS_ID_TOKEN_REQUEST_TOKEN)" } -MaximumRetryCount 5 -Method 'Get' -RetryIntervalSec 10
+          deno task npm-codeberg-publish --token $JWT.value
       - name: "Publish To NPM GitHub"
         if: "${{!cancelled() && steps.build-general.outcome == 'success' && env.CDV_DEPLOY_NPM_GITHUB == 'true'}}"
         env:
