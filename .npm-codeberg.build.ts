@@ -15,7 +15,6 @@ await transform({
 	},
 	//@ts-ignore Lazy type.
 	entrypointsScript: manifest.exports,
-	generateDeclarationMap: true,
 	mappings: {
 		"jsr:@hugoalh/blake@^0.2.2/2b": {
 			name: "@hugoalh/blake",

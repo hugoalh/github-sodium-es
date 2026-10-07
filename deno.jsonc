@@ -1,5 +1,9 @@
 {
 	"$schema": "https://raw.githubusercontent.com/denoland/deno/main/cli/schemas/config-file.v1.json",
+	"compilerOptions": {
+		"erasableSyntaxOnly": true,
+		"verbatimModuleSyntax": true
+	},
 	"fmt": {
 		"angularNextControlFlowSameLine": true,
 		"bracePosition": "sameLine",
@@ -29,12 +33,12 @@
 		"vueComponentCase": "ignore"
 	},
 	"imports": { // IMPORTANT: Only for development dependencies!
-		"DNT": "jsr:@hugoalh/deno-nodejs-transformer@^0.9.3",
+		"DNT": "jsr:@hugoalh/deno-nodejs-transformer@^0.10.0",
 		"NPP": "https://raw.githubusercontent.com/hugoalh/npm-publish-patcher/e653760120ddc8e15476f276597aa7662d5ece59/deno/cli.ts"
 	},
 	"lint": {
 		"plugins": [
-			"jsr:@hugoalh/deno-lint-rules@^0.19.2/presets/library"
+			"jsr:@hugoalh/deno-lint-rules@^0.20.0/presets/library"
 		],
 		"rules": {
 			"tags": [

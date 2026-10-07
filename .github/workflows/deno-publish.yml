@@ -30,13 +30,6 @@ on:
           - "auto"
           - "false"
         default: "auto"
-      npm-kaki87:
-        type: "choice"
-        description: "Whether publish to NPM KaKi87."
-        options:
-          - "auto"
-          - "false"
-        default: "auto"
       npm-npm:
         type: "choice"
         description: "Whether publish to NPM NPM."
@@ -113,7 +106,6 @@ jobs:
           CDV_DISPATCH_JSR: "${{inputs.jsr || 'auto'}}"
           CDV_DISPATCH_NPM_CODEBERG: "${{inputs.npm-codeberg || 'auto'}}"
           CDV_DISPATCH_NPM_GITHUB: "${{inputs.npm-github || 'auto'}}"
-          CDV_DISPATCH_NPM_KAKI87: "${{inputs.npm-kaki87 || 'auto'}}"
           CDV_DISPATCH_NPM_NPM: "${{inputs.npm-npm || 'auto'}}"
         run: |-
           $ErrorActionPreference = 'Stop'
@@ -125,8 +117,6 @@ jobs:
           [Boolean]$NPMCodebergDispatch = $Env:CDV_DISPATCH_NPM_CODEBERG -ieq 'auto' -and $NPMCodebergPublish
           [Boolean]$NPMGitHubPublish = $Null -ine $Config.tasks.'npm-github-publish'
           [Boolean]$NPMGitHubDispatch = $Env:CDV_DISPATCH_NPM_GITHUB -ieq 'auto' -and $NPMGitHubPublish
-          [Boolean]$NPMKaKi87Publish = $Null -ine $Config.tasks.'npm-kaki87-publish'
-          [Boolean]$NPMKaKi87Dispatch = $Env:CDV_DISPATCH_NPM_KAKI87 -ieq 'auto' -and $NPMKaKi87Publish
           [Boolean]$NPMNPMPublish = $Null -ine $Config.tasks.'npm-npm-publish'
           [Boolean]$NPMNPMDispatch = $Env:CDV_DISPATCH_NPM_NPM -ieq 'auto' -and $NPMNPMPublish
           Add-Content -LiteralPath $Env:GITHUB_STEP_SUMMARY -Value @"
@@ -138,13 +128,11 @@ jobs:
           | JSR | $(($Null -ine $Config.tasks.'jsr-build') ? '✔️' : '❌') | $($JSRPublish ? '✔️' : '❌') | $($JSRDispatch ? '✔️' : '❌') |
           | NPM Codeberg | $(($Null -ine $Config.tasks.'npm-codeberg-build') ? '✔️' : '❌') | $($NPMCodebergPublish ? '✔️' : '❌') | $($NPMCodebergDispatch ? '✔️' : '❌') |
           | NPM GitHub | $(($Null -ine $Config.tasks.'npm-github-build') ? '✔️' : '❌') | $($NPMGitHubPublish ? '✔️' : '❌') | $($NPMGitHubDispatch ? '✔️' : '❌') |
-          | NPM KaKi87 | $(($Null -ine $Config.tasks.'npm-kaki87-build') ? '✔️' : '❌') | $($NPMKaKi87Publish ? '✔️' : '❌') | $($NPMKaKi87Dispatch ? '✔️' : '❌') |
           | NPM NPM | $(($Null -ine $Config.tasks.'npm-npm-build') ? '✔️' : '❌') | $($NPMNPMPublish ? '✔️' : '❌') | $($NPMNPMDispatch ? '✔️' : '❌') |
           "@
           Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_DEPLOY_JSR=$($JSRDispatch.ToString().ToLower())"
           Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_DEPLOY_NPM_CODEBERG=$($NPMCodebergDispatch.ToString().ToLower())"
           Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_DEPLOY_NPM_GITHUB=$($NPMGitHubDispatch.ToString().ToLower())"
-          Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_DEPLOY_NPM_KAKI87=$($NPMKaKi87Dispatch.ToString().ToLower())"
           Add-Content -LiteralPath $Env:GITHUB_ENV -Value "CDV_DEPLOY_NPM_NPM=$($NPMNPMDispatch.ToString().ToLower())"
       - name: "Build Repository"
         id: "build-general"
@@ -172,13 +160,6 @@ jobs:
         run: |-
           deno task --if-present npm-github-build
           deno task npm-github-publish --token '^CDV_NPM_GITHUB_TOKEN'
-      - name: "Publish To NPM KaKi87"
-        if: "${{!cancelled() && steps.build-general.outcome == 'success' && env.CDV_DEPLOY_NPM_KAKI87 == 'true'}}"
-        env:
-          CDV_NPM_KAKI87_TOKEN: "${{secrets.NPM_KAKI87_TOKEN}}"
-        run: |-
-          deno task --if-present npm-kaki87-build
-          deno task npm-kaki87-publish --token '^CDV_NPM_KAKI87_TOKEN'
       - name: "Publish To NPM NPM"
         if: "${{!cancelled() && steps.build-general.outcome == 'success' && env.CDV_DEPLOY_NPM_NPM == 'true'}}"
         env:

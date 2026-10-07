@@ -99,7 +99,6 @@ jobs:
           | JSR | $(($Null -ine $Config.tasks.'jsr-build') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'jsr-check') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'jsr-publish') ? '✔️' : '❌') |
           | NPM Codeberg | $(($Null -ine $Config.tasks.'npm-codeberg-build') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-codeberg-check') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-codeberg-publish') ? '✔️' : '❌') |
           | NPM GitHub | $(($Null -ine $Config.tasks.'npm-github-build') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-github-check') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-github-publish') ? '✔️' : '❌') |
-          | NPM KaKi87 | $(($Null -ine $Config.tasks.'npm-kaki87-build') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-kaki87-check') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-kaki87-publish') ? '✔️' : '❌') |
           | NPM NPM | $(($Null -ine $Config.tasks.'npm-npm-build') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-npm-check') ? '✔️' : '❌') | $(($Null -ine $Config.tasks.'npm-npm-publish') ? '✔️' : '❌') |
           "@
       - name: "Check Dependencies Update"
@@ -157,11 +156,6 @@ jobs:
         run: |-
           deno task --if-present npm-github-build
           deno task --if-present npm-github-check
-      - name: "Check For NPM KaKi87"
-        if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
-        run: |-
-          deno task --if-present npm-kaki87-build
-          deno task --if-present npm-kaki87-check
       - name: "Check For NPM NPM"
         if: "${{!cancelled() && env.CDV_RUN_LITE == 'false'}}"
         run: |-
