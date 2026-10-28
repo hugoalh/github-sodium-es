@@ -16,14 +16,14 @@ await transform({
 	//@ts-ignore Lazy type.
 	entrypointsScript: manifest.exports,
 	mappings: {
-		"jsr:@hugoalh/blake@^0.2.2/2b": {
+		"jsr:@hugoalh/blake@^0.3.1/2b": {
 			name: "@hugoalh/blake",
-			version: "^0.2.2",
+			version: "^0.3.1",
 			subPath: "2b"
 		},
-		"jsr:@hugoalh/nacl@^0.2.1": {
+		"jsr:@hugoalh/nacl@^0.2.2": {
 			name: "@hugoalh/nacl",
-			version: "^0.2.1"
+			version: "^0.2.2"
 		}
 	},
 	metadata: {
